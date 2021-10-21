@@ -7,8 +7,8 @@ def store(project_id: int, config: str) -> int:
 
 
 def get(project_id: int, config_id: int) -> str:
-    config = "empty"
-    return
+    config = ""
+    return config
 
 
 def get_all(project_id: int) -> List[int]:

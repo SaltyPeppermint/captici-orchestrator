@@ -1,14 +1,12 @@
 
 
 from typing import Optional
-from pydantic.fields import Field
-from pydantic.main import BaseModel
-from pydantic.networks import EmailStr, HttpUrl
+from pydantic import BaseModel, EmailStr, HttpUrl, Field
 
 
 class RegisterRequest(BaseModel):
     repo_url: HttpUrl = Field(...,
-                              description="URL of the git repo of the project to test. Must be properly formatted URL including http(s)://", max_length=256)
+                              description="URL of the git repo of the project to test. Must be properly formatted URL including http(s)://")
     git_user: str = Field(
         "git", description="Git user of the repo. Max length of 32. Only \\w regex characters and \"-\" are allowed.", max_length=32, regex=r"(\w|-)+")
     auth_token: str = Field(
@@ -20,7 +18,7 @@ class RegisterRequest(BaseModel):
     project_name: Optional[str] = Field(None,
                                         description="Name of the project. Maximum of 256 characters", max_length=256)
     email: Optional[EmailStr] = Field(None,
-                                      description="Email associated with the project. Max length of 256", max_length=256)
+                                      description="Email associated with the project")
 
 
 def register(register_req: RegisterRequest) -> int:

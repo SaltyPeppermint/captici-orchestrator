@@ -13,7 +13,7 @@ app = FastAPI()
 
 @app.put("/project/register", status_code=status.HTTP_200_OK)
 async def register_project(register_req: storage.projects.RegisterRequest):
-    project_id = storage.projects.manager.register(register_req)
+    project_id = storage.projects(register_req)
     return {"project_id": project_id}
 
 
@@ -30,7 +30,7 @@ async def delete_project(project_id: int = Path(..., title="Id of the project to
 async def add_project(project_id: int = Path(..., title="Id of the project to add config to", gt=0),
                       config: str = Body(...,
                                          description="Config as a string. Max length of 4096 characters.", max_length=65536)):
-    config_id = storage.configs(project_id, config)
+    config_id = storage.configs.store(project_id, config)
     return {"config_id": config_id}
 
 
@@ -65,7 +65,7 @@ async def read_commit_test_result(project_id: int = Path(..., title="Id of the t
         raise HTTPException(status_code=status.HTTP_202_ACCEPTED,
                             detail="Test not ready")
     else:
-        return testing.commit.get_test_report()
+        return testing.commit.get_test_report(project_id, test_id)
 
 
 @app.post("/test/project/{project_id}", status_code=status.HTTP_200_OK)

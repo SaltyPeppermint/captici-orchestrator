@@ -1,6 +1,3 @@
-from test_orchestrator.bodies import CommitTestReport
-
-
 def test(project_id: int) -> int:
     test_id = 0
     return test_id
