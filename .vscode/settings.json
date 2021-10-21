@@ -1,6 +1,7 @@
 {
     "python.pythonPath": "/home/nicole/Projects/cdpb-tester/test-orchestrator/.venv/bin/python",
     "cSpell.words": [
+        "pydantic",
         "uvicorn"
     ]
 }
