@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "test-orchestrator"
+version = "0.1.0"
+description = ""
+authors = ["Nicole Heinimann <nh51siku@studserv.uni-leipzig.de>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+fastapi = "^0.70.0"
+
+[tool.poetry.dev-dependencies]
+autopep8 = "^1.5.7"
+fastapi = {extras = ["all"], version = "^0.70.0"}
+pytest = "^6.2.5"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+start = "test_orchestrator.main:start"
