@@ -19,7 +19,9 @@ def build_commit(project_name: str, commit_hash: str):
                 "name": f"kaniko-{project_name}-{commit_hash}",
                 "args": [
                     f"--context=tar:///tared_commits/{project_name}/{commit_hash}.tar.gz",
-                    f"--destination={CONTAINER_REGISTRY_URL}/{CONTAINER_REGISTRY_USER}/{project_name}:{commit_hash}"
+                    f"--destination={CONTAINER_REGISTRY_URL}/{CONTAINER_REGISTRY_USER}/{project_name}:{commit_hash}",
+                    "--cache=True",
+                    "--skip-tls-verify-registry"
                 ],
                 "volume_mounts": [
                     {
