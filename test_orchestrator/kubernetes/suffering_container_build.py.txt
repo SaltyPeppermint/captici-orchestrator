@@ -1,0 +1,46 @@
+    # pod_container = V1Container(
+    #     args=[tar_path_arg, destination_arg],
+    #     image="gcr.io/kaniko-project/executor:latest",
+    #     name=container_name,
+    #     volume_mounts=[
+    #         V1VolumeMount(
+    #             name=kaniko_secret_vol_name,
+    #             mount_path="/kaniko/.docker"
+    #         ),
+    #         V1VolumeMount(
+    #             name=tared_commit_vol_name,
+    #             mount_path="/tars/"
+    #         )
+    #     ]
+    # )
+
+    # kaniko_secret_volume = V1Volume(
+    #     name=kaniko_secret_vol_name,
+    #     nfs=V1SecretVolumeSource(
+    #         secret_name="dockercred",
+    #         items=[V1KeyToPath(
+    #             key=".dockerconfigjson",
+    #             path="config.json"
+    #         )]
+    #     )
+    # )
+    # tared_commit_volume = V1Volume(
+    #     name=tared_commit_vol_name,
+    #     nfs=V1NFSVolumeSource(
+    #         server=NFS_SERVER,
+    #         path=NFS_TARED_SHARE,
+    #         read_only=True
+    #     )
+    # )
+
+    # pod_manifest = V1Pod(
+    #     api_version="v1",
+    #     kind="Pod",
+    #     metadata=V1ObjectMeta(name=container_name),
+    #     spec=V1PodSpec(
+    #         containers=[pod_container],
+    #         restart_policy="Never",
+    #         volumes=[kaniko_secret_volume, tared_commit_volume]
+    #     )
+    # )
+    # return pod_manifest
