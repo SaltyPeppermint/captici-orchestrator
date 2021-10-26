@@ -34,3 +34,4 @@ def tar_into(project_name: str, commit_hash: str):
     with tarfile.open(tar_path, mode="w:gz") as tar:
         tar.add(repo_path, recursive=True,
                 filter=lambda tarinfo: None if ".git" in tarinfo.name else tarinfo)
+    return
