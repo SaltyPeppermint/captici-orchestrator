@@ -32,13 +32,11 @@ def build_commit(project_name: str, commit_hash: str):
                         "name": TARED_COMMITS_VOL_NAME,
                         "mount_path": "/tared_commits"
                     }
-                ],
-                "securityContext": {
-                    "supplementalGroups": [450]
-                }
-
-
+                ]
             }],
+            "security_context": {
+                "fs_group": 450
+            },
             "restart_policy": "Never",
             "volumes": [
                 {
