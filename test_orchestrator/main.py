@@ -3,10 +3,8 @@ from fastapi import FastAPI, status
 from fastapi.exceptions import HTTPException
 from fastapi.params import Body, Path, Query
 
-import storage.projects
-import storage.configs
-import testing.commit
-import testing.project
+from test_orchestrator import storage
+from test_orchestrator import testing
 
 app = FastAPI()
 
