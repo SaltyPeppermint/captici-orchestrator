@@ -9,3 +9,7 @@ def does_test_exist(project_id: int) -> bool:
 
 def is_test_finished(project_id: int) -> bool:
     return True
+
+
+def get_test_report(project_id: int, test_id: int) -> bool:
+    return True

@@ -68,19 +68,20 @@ async def read_commit_test_result(project_id: int = Path(..., title="Id of the t
 
 @app.post("/test/project/{project_id}", status_code=status.HTTP_200_OK)
 async def request_project_test(project_id: int = Path(..., title="Id of the project to test", gt=0)):
-    testing.project.test(project_id)
-    return
+    test_id = testing.project.test(project_id)
+    return {"test_id": test_id}
 
 
 @app.get("/test/project/{project_id}")
-async def read_project_test_status(project_id: int = Path(..., title="Id of the tested project", gt=0)):
+async def read_project_test_status(project_id: int = Path(..., title="Id of the tested project", gt=0),
+                                   test_id: int = Query(..., title="Result id of the test", gt=0)):
     if not testing.project.does_test_exist(project_id):
         raise HTTPException(status_code=404, detail="Item not found")
     elif not testing.project.is_test_finished(project_id):
         raise HTTPException(status_code=status.HTTP_202_ACCEPTED,
                             detail="Test not ready")
     else:
-        return
+        return testing.project.get_test_report(project_id, test_id)
 
 
 def start():
