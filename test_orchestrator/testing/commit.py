@@ -1,5 +1,7 @@
 from typing import Dict, List, Optional
 from pydantic import BaseModel
+from test_orchestrator.kubernetes import container_build
+from test_orchestrator.storage import projects
 
 
 class CommitTestReport(BaseModel):
@@ -9,6 +11,8 @@ class CommitTestReport(BaseModel):
 
 
 def test(project_id: int, commit: str) -> int:
+    project_name = projects.id2name(project_id)
+    container_build.build_commit(project_name, commit)
     test_id = 0
     return test_id
 

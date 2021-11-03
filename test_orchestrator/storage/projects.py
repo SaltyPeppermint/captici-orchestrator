@@ -26,5 +26,10 @@ def register(register_req: RegisterRequest) -> int:
     return project_id
 
 
-def delete(config_id: int) -> bool:
+def delete(project_id: int) -> bool:
     return True
+
+
+def id2name(project_id: int) -> str:
+    # TODO IMPLEMENT
+    return "ripgrep"

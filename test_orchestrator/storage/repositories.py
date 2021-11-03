@@ -2,8 +2,6 @@ import git
 import tarfile
 import os
 
-from git.exc import GitError
-
 
 def get_git_cred(project_name: str):
     return ("github.com/BurntSushi/ripgrep.git", "git", "")
