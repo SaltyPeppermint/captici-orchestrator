@@ -21,7 +21,7 @@ def update_repo(repo_path: str):
 
 
 def tar_into(project_name: str, commit_hash: str):
-    repo_path = f"/repos/{project_name}"
+    repo_path = f"{os.getcwd()}/repos/{project_name}"
     if not os.path.exists(repo_path):
         repo = clone_repo(project_name, repo_path)
     else:
@@ -30,8 +30,8 @@ def tar_into(project_name: str, commit_hash: str):
     main_branch = repo.active_branch.name
     repo.git.checkout(commit_hash)
 
-    tar_path = f"/tars/{project_name}/{commit_hash}.tar.gz"
-    tar_folder = f"/tars/{project_name}"
+    tar_path = f"{os.getcwd()}/tars/{project_name}/{commit_hash}.tar.gz"
+    tar_folder = f"{os.getcwd()}/tars/{project_name}"
 
     if not os.path.exists(tar_folder):
         os.makedirs(tar_folder)

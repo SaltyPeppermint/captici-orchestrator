@@ -1,7 +1,7 @@
 from kubernetes import config
 from kubernetes.client.api import core_v1_api
 from kubernetes.client.configuration import Configuration
-from settings import *
+from ..settings import *
 import time
 
 

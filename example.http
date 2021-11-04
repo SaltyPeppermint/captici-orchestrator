@@ -1,31 +1,37 @@
-PUT http://localhost:8000/project/register HTTP/1.1
+
+@protocol=http
+@url=kube001.informatik.intern.uni-leipzig.de
+@port=30104
+
+
+PUT {{protocol}}://{{url}}:{{port}}/project/register
 content-type: application/json
 
 {
     "config": "asdf"
 }
 ###
-DELETE http://localhost:8000/project/delete/123 HTTP/1.1
+DELETE {{protocol}}://{{url}}:{{port}}/project/delete/123
 ###
 
 
-PUT http://localhost:8000/config/add/0 HTTP/1.1
+PUT {{protocol}}://{{url}}:{{port}}/config/add/5
 content-type: application/json
 
 {
     "config": "asdf"
 }
 ###
-GET http://localhost:8000/config/get/1?config_id=123
+GET {{protocol}}://{{url}}:{{port}}/config/get/1?config_id=123
 ###
-GET http://localhost:8000/config/get_all/1
+GET {{protocol}}://{{url}}:{{port}}/config/get_all/1
 ###
 
 
-POST http://localhost:8000/test/commit/1?commit=cc46701e747d855807c26252c90b628c9cd319cc HTTP/1.1
+POST {{protocol}}://{{url}}:{{port}}/test/commit/1?commit=cc46701e747d855807c26252c90b628c9cd319cc
 ###
-GET http://localhost:8000/test/commit/1?test_id=123 HTTP/1.1
+GET {{protocol}}://{{url}}:{{port}}/test/commit/1?test_id=123
 ###
-POST http://localhost:8000/test/project/1 HTTP/1.1
+POST {{protocol}}://{{url}}:{{port}}/test/project/1
 ###
-GET http://localhost:8000/test/project/1?test_id=123 HTTP/1.1
+GET {{protocol}}://{{url}}:{{port}}/test/project/1?test_id=123

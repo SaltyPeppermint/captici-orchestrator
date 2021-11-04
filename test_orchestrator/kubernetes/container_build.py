@@ -1,7 +1,8 @@
-from settings import *
+import os
+from ..settings import *
 
-import k8s_api
-import storage.repositories as repos
+from ..kubernetes import k8s_api
+from ..storage import repositories as repos
 
 
 def build_commit(project_name: str, commit_hash: str):
@@ -30,7 +31,7 @@ def build_commit(project_name: str, commit_hash: str):
                     },
                     {
                         "name": TARED_COMMITS_VOL_NAME,
-                        "mount_path": "/tared_commits"
+                        "mount_path": os.getcwd() + "/tares"
                     }
                 ]
             }],

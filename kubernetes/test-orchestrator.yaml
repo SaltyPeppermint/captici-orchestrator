@@ -2,21 +2,38 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: orchestrator-deployment
+  name: test-orchestrator
   labels:
-    app: orchestrator
+    app: test-orchestrator
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: nginx
+      app: test-orchestrator
   template:
     metadata:
       labels:
-        app: nginx
+        app: test-orchestrator
     spec:
       containers:
         - name: test-orchestrator
-          image: nginx:1.14.2
+          image: kube001.informatik.intern.uni-leipzig.de:30005/nicole/test-orchestrator:latest
           ports:
             - containerPort: 8000
+          imagePullPolicy: Always
+      imagePullSecrets:
+        - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-orchestrator
+spec:
+  type: NodePort
+  selector:
+    app: test-orchestrator
+  ports:
+    - nodePort: 30104
+      port: 8000
+      protocol: TCP
+      targetPort: 8000

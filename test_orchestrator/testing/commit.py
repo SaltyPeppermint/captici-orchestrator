@@ -1,7 +1,7 @@
 from typing import Dict, List, Optional
 from pydantic import BaseModel
-from test_orchestrator.kubernetes import container_build
-from test_orchestrator.storage import projects
+from ..kubernetes import container_build
+from ..storage import projects
 
 
 class CommitTestReport(BaseModel):

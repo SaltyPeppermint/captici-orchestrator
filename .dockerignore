@@ -22,4 +22,12 @@
 **/obj
 **/secrets.dev.yaml
 **/values.dev.yaml
+**/tests
+**/.vscode
 README.md
+example.http
+poetry.lock
+pyproject.toml
+kubernetes
+repos
+tars
