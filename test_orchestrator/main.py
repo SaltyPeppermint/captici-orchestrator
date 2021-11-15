@@ -1,3 +1,4 @@
+from starlette.responses import FileResponse
 import uvicorn
 from fastapi import FastAPI, status
 from fastapi.exceptions import HTTPException
@@ -82,6 +83,11 @@ async def read_project_test_status(project_id: int = Path(..., title="Id of the 
                             detail="Test not ready")
     else:
         return testing.project.get_test_report(project_id, test_id)
+
+
+@app.get("/adapter")
+async def get_adapter():
+    return FileResponse("static/performance-test-adapter")
 
 
 def start():

@@ -2,9 +2,10 @@
 NAMESPACE = "default"
 # NFS_SERVER = "oersted.informatik.uni-leipzig.de"
 NFS_SERVER = "127.0.0.1"
-# NFS_TARED_SHARE = "/raid/kube_storage/nicole_bsc/tared_commits"
+# NFS_TARED_SHARE = "/raid/kube_storage/nicole_bsc/tars"
+# NFS_REPORT_SHARE = "/raid/kube_storage/nicole_bsc/reports"
 NFS_TARED_SHARE = "/mnt/nfs_share/tars"
+NFS_REPORT_SHARE = "/mnt/nfs_share/reports"
+
 CONTAINER_REGISTRY_URL = "kube001.informatik.intern.uni-leipzig.de:30005"
 CONTAINER_REGISTRY_USER = "test-orchestrator"
-KANIKO_SECRET_VOL_NAME = "kaniko-secret"
-TARED_COMMITS_VOL_NAME = "tared-commits"
