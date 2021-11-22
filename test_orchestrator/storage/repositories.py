@@ -1,7 +1,7 @@
 import git
 import tarfile
 import os
-import projects
+from . import projects
 
 
 def get_git_cred(project_id: int):
