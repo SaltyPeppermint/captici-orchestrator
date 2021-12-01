@@ -1,0 +1,20 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: example-web
+  name: example-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: example-web
+  template:
+    metadata:
+      labels:
+        app: example-web
+    spec:
+      containers:
+      - image: gcr.io/google-samples/hello-app:1.0
+        name: hello-app

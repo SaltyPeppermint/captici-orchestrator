@@ -1,0 +1,26 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-orchestrator
+  namespace: cdpb-tester
+  labels:
+    app: test-orchestrator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-orchestrator
+  template:
+    metadata:
+      labels:
+        app: test-orchestrator
+    spec:
+      containers:
+        - name: test-orchestrator
+          image: kube001.informatik.intern.uni-leipzig.de:30005/nicole/test-orchestrator:latest
+          ports:
+            - containerPort: 8000
+          imagePullPolicy: Always
+      imagePullSecrets:
+        - name: regcred

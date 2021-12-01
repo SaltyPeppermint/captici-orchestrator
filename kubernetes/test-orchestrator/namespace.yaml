@@ -1,0 +1,8 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cdpb-tester
+  labels:
+    app.kubernetes.io/name: cdpb-tester
+    app.kubernetes.io/instance: cdpb-tester
