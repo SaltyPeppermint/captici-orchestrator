@@ -1,0 +1,21 @@
+---
+# Patch to fix the nodePorts for http to 30080 and for https to 30433
+apiVersion: v1
+kind: Service
+metadata:
+  name: not-important
+spec:
+  type: NodePort
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
+      appProtocol: http
+      nodePort: 30080
+    - name: https
+      port: 443
+      protocol: TCP
+      targetPort: https
+      appProtocol: https
+      nodePort: 30443

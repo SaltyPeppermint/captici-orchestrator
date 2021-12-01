@@ -1,10 +1,13 @@
 {
     "python.pythonPath": ".venv/bin/python",
     "cSpell.words": [
+        "cdpb",
+        "dockerconfigjson",
         "KANIKO",
         "kube",
         "kubernetes",
         "pydantic",
+        "regcred",
         "starlette",
         "uvicorn"
     ],

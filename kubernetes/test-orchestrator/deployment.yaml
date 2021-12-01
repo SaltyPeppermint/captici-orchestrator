@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: test-orchestrator
-          image: kube001.informatik.intern.uni-leipzig.de:30005/nicole/test-orchestrator:latest
+          image: docker.io/saltypeppermint/test-orchestrator:latest
           ports:
             - containerPort: 8000
           imagePullPolicy: Always

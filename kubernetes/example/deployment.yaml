@@ -16,5 +16,5 @@ spec:
         app: example-web
     spec:
       containers:
-      - image: gcr.io/google-samples/hello-app:1.0
-        name: hello-app
+        - image: gcr.io/google-samples/hello-app:1.0
+          name: hello-app
