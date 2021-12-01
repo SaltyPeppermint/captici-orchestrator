@@ -2,19 +2,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  labels:
-    app: example-web
-  name: example-web
+  name: kuard
 spec:
-  replicas: 1
   selector:
     matchLabels:
-      app: example-web
+      app: kuard
+  replicas: 1
   template:
     metadata:
       labels:
-        app: example-web
+        app: kuard
     spec:
       containers:
-        - image: gcr.io/google-samples/hello-app:1.0
-          name: hello-app
+        - image: gcr.io/kuar-demo/kuard-amd64:1
+          imagePullPolicy: Always
+          name: kuard
+          ports:
+            - containerPort: 8080

@@ -6,10 +6,16 @@ metadata:
   namespace: cdpb-tester
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /$2
+    cert-manager.io/issuer: "letsencrypt-staging"
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - kube.informatik.uni-leipzig.de
+      secretName: kube.informatik.uni-leipzig.de-tls
   rules:
-    - http:
+    - host: kube.informatik.uni-leipzig.de
+      http:
         paths:
           - path: /cdpb-tester(/|$)(?!internal)(.*) # exclude the private path from external networking
             pathType: Prefix

@@ -5,15 +5,21 @@ metadata:
   name: minimal-ingress
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
+    cert-manager.io/issuer: "letsencrypt-staging"
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - kube.informatik.uni-leipzig.de
+      secretName: kube.informatik.uni-leipzig.de-tls
   rules:
-    - http:
+    - host: kube.informatik.uni-leipzig.de
+      http:
         paths:
           - path: /example
             pathType: Prefix
             backend:
               service:
-                name: example-web
+                name: kuard
                 port:
                   number: 80

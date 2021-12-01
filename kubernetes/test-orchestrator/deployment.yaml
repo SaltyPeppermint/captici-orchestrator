@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: test-orchestrator
-          image: docker.io/saltypeppermint/test-orchestrator:latest
+          image: kube001.informatik.intern.uni-leipzig.de:30005/saltypeppermint/test-orchestrator:latest
           ports:
             - containerPort: 8080
           imagePullPolicy: Always
@@ -30,4 +30,4 @@ spec:
               memory: "128Mi"
               cpu: "500m"
       imagePullSecrets:
-        - name: regcred
+        - name: regcred-local
