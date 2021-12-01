@@ -1,5 +1,5 @@
 from typing import Dict
-from ..settings import *
+from settings import *
 from kubernetes.client import V1ConfigMap, V1Pod, V1ObjectMeta, V1PodSpec, V1Container, V1Volume, V1VolumeMount, V1SecretVolumeSource, V1NFSVolumeSource, V1KeyToPath, V1PodSecurityContext, V1EnvVar, V1EmptyDirVolumeSource, V1ConfigMapVolumeSource
 
 

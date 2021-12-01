@@ -4,15 +4,18 @@ from fastapi import FastAPI, status
 from fastapi.exceptions import HTTPException
 from fastapi.params import Body, Path, Query
 
-from . import storage
-from . import testing
+import storage.projects
+import storage.configs
+
+import testing.project
+import testing.commit
 
 app = FastAPI()
 
 
 @app.put("/project/register", status_code=status.HTTP_200_OK)
 async def register_project(register_req: storage.projects.RegisterRequest):
-    project_id = storage.projects(register_req)
+    project_id = storage.projects.register(register_req)
     return {"project_id": project_id}
 
 
@@ -85,9 +88,9 @@ async def read_project_test_status(project_id: int = Path(..., title="Id of the 
         return testing.project.get_test_report(project_id, test_id)
 
 
-@app.get("/adapter")
+@app.get("/internal/adapter")
 async def get_adapter():
-    return FileResponse("static/performance-test-adapter")
+    return FileResponse("../static/performance-test-adapter")
 
 
 def start():

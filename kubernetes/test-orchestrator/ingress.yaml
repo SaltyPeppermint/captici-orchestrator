@@ -11,10 +11,10 @@ spec:
   rules:
     - http:
         paths:
-          - path: /cdpb-tester(/|$)(?!private)(.*) # exclude the private path from external networking
+          - path: /cdpb-tester(/|$)(?!internal)(.*) # exclude the private path from external networking
             pathType: Prefix
             backend:
               service:
                 name: test-orchestrator
                 port:
-                  number: 8000
+                  number: 8080

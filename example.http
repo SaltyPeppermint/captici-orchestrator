@@ -1,8 +1,10 @@
 
 @protocol=http
-@url=kube001.informatik.intern.uni-leipzig.de
-@port=30104
+@url=localhost
+# @url=kube001.informatik.intern.uni-leipzig.de
 
+@port=8080
+# @port=30104
 
 PUT {{protocol}}://{{url}}:{{port}}/project/register
 content-type: application/json

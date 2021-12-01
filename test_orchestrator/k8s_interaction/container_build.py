@@ -1,10 +1,10 @@
 from typing import Dict, List
-from ..settings import *
+from settings import *
 
-from ..kubernetes import k8s_api
-from ..kubernetes import templates
-from ..storage import projects
-from ..storage import repositories as repos
+from k8s_interaction import k8s_api
+from k8s_interaction import templates
+from storage import projects
+from storage import repositories as repos
 
 
 def build_app(project_id: int, commit_hash: str) -> str:
