@@ -1,4 +1,6 @@
 ---
 resources:
-- example/
-- nginx/
+  - cert-manager/
+  - nginx-ingress/
+  - registry/
+  - test-orchestrator/
