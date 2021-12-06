@@ -5,19 +5,33 @@ metadata:
   name: test-orchestrator
   namespace: cdpb-tester
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
-    cert-manager.io/issuer: "letsencrypt-staging"
+    nginx.ingress.kubernetes.io/rewrite-target: "/$1"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
 spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - kube.informatik.uni-leipzig.de
-      secretName: kube.informatik.uni-leipzig.de-tls
+        - cdpb-tester.kube.informatik.uni-leipzig.de
+      secretName: cdpb-tester.kube.informatik.uni-leipzig.de-tls
   rules:
-    - host: kube.informatik.uni-leipzig.de
+    - host: cdpb-tester.kube.informatik.uni-leipzig.de
       http:
         paths:
-          - path: /cdpb-tester(/|$)(?!internal)(.*) # exclude the private path from external networking
+          - path: /(project(?:/|$).*)
+            pathType: Prefix
+            backend:
+              service:
+                name: test-orchestrator
+                port:
+                  number: 8080
+          - path: /(config(?:/|$).*)
+            pathType: Prefix
+            backend:
+              service:
+                name: test-orchestrator
+                port:
+                  number: 8080
+          - path: /(test(?:/|$).*)
             pathType: Prefix
             backend:
               service:
