@@ -16,9 +16,18 @@ spec:
       labels:
         app: test-orchestrator
     spec:
+      volumes:
+        - name: nfs-volume
+          nfs:
+            # URL for the NFS server
+            server: oersted.informatik.uni-leipzig.de # Change this!
+            path: /mnt/nfs_share
       containers:
         - name: test-orchestrator
           image: registry.kube.informatik.uni-leipzig.de/nicole/test-orchestrator:latest
+          volumeMounts:
+            - name: nfs-volume
+              mountPath: /var/nfs
           ports:
             - containerPort: 8080
           imagePullPolicy: Always

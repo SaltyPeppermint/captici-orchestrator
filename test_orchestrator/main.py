@@ -6,6 +6,9 @@ from fastapi.params import Body, Path, Query
 
 import storage.projects
 import storage.configs
+import storage.tars
+
+import evaluation.reports
 
 import testing.project
 import testing.commit
@@ -88,9 +91,28 @@ async def read_project_test_status(project_id: int = Path(..., title="Id of the 
         return testing.project.get_test_report(project_id, test_id)
 
 
-@app.get("/internal/adapter")
+@app.get("/adapter")
 async def get_adapter():
     return FileResponse("../static/performance-test-adapter")
+
+
+@app.post("/reports/{identifier}", status_code=status.HTTP_200_OK)
+async def request_project_test(report_id: str = Path(...,
+                                                     description="Identifier of the report as string. Max length of 65536 characters.",
+                                                     max_length=1000),
+                               content: str = Body(...,
+                                                   description="Content of the report as string. Max length of 65536 characters.",
+                                                   max_length=65536)):
+    evaluation.gatherer.accept_report(report_id, content)
+    return
+
+
+@app.get("/tars/{tar_id}", status_code=status.HTTP_200_OK)
+async def request_project_test(report_id: str = Path(...,
+                                                     description="Identifier of the report as string. Max length of 65536 characters.",
+                                                     max_length=1000)):
+    tar_path = storage.tars.tar_id2tar_path(report_id)
+    return FileResponse(tar_path)
 
 
 def start():

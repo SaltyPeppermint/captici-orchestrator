@@ -1,61 +1,87 @@
 from typing import Dict
-from settings import *
+from settings import NAMESPACE, ADAPTER_BIN, ADAPTER_DIR, TAR_DIR
 from kubernetes.client import V1ConfigMap, V1Pod, V1ObjectMeta, V1PodSpec, V1Container, V1Volume, V1VolumeMount, V1SecretVolumeSource, V1NFSVolumeSource, V1KeyToPath, V1PodSecurityContext, V1EnvVar, V1EmptyDirVolumeSource, V1ConfigMapVolumeSource
 
+DOWNLOAD_STRING = f"'wget -O {ADAPTER_DIR + ADAPTER_BIN} http://test-orchestrator.svc.cluster.local/adapter && chmod +x {ADAPTER_DIR + ADAPTER_BIN}'"
 
-KANIKO_SECRET_VOL_NAME = "kaniko-secret"
-TARED_COMMITS_VOL_NAME = "tared-commits"
-TEST_REPORT_VOL_NAME = "test-reports"
-ADAPTER_SHARED_VOL_NAME = "adapter-download"
-ADAPTER_DOWNLOAD_FOLDER = "/downloads"
-APP_CONFIG_MAP_VOL_NAME = "app-config"
+
+def adapter_init_container(adapter_vol):
+    return V1Container(
+        name="adapter-injector",
+        image="gcr.io/google-containers/busybox:latest",
+        command=["sh -c"],
+        args=[DOWNLOAD_STRING],
+        volume_mounts=[V1VolumeMount(
+            name=adapter_vol, mount_path=ADAPTER_DIR)
+        ]
+    )
+
+
+def kaniko_init_container(tar_vol, tar_path):
+    return V1Container(
+        name="adapter-injector",
+        image="gcr.io/google-containers/busybox:latest",
+        command=["wget"],
+        args=["-O", "context.tar.gz", tar_path],
+        volume_mounts=[V1VolumeMount(
+            name=tar_vol, mount_path=ADAPTER_DIR)
+        ]
+    )
 
 
 def build_pod(build_name: str, image_name: str, tar_path: str) -> V1Pod:
+    secret_vol = "kaniko-secret"
+    tar_vol = "tared-commits"
+    context_dir = "/context"
     return V1Pod(
-        V1ObjectMeta(name=build_name),
+        V1ObjectMeta(name=build_name, namespace=NAMESPACE),
         V1PodSpec(
+            initContainers=[kaniko_init_container(tar_vol, tar_path)],
             containers=[V1Container(
                 name=build_name,
                 image="gcr.io/kaniko-project/executor:latest",
-                args=["--context=tar://{tar_path}", "--destination={image_name}",
-                      "--cache=True", "--skip-tls-verify-registry"],
-                volume_mounts=[
-                    V1VolumeMount(
-                        name=KANIKO_SECRET_VOL_NAME,
-                        mount_path="/kaniko/.docker"
-                    ),
-                    V1VolumeMount(
-                        name=TARED_COMMITS_VOL_NAME,
-                        mount_path="/tars"
-                    )
-                ]
+                args=[f"--context=tar://{context_dir}/context.tar.gz", f"--destination={image_name}",
+                      "--cache=True"],
+                volume_mounts=kaniko_mounts(secret_vol, tar_vol, context_dir)
 
             )],
-            volumes=[
-                V1Volume(
-                    V1SecretVolumeSource(
-                        secret_name="dockercred",
-                        items=V1KeyToPath(
-                            path=".dockerconfigjson", key="config.json")
-                    ),
-                    name=KANIKO_SECRET_VOL_NAME
-                ),
-                V1Volume(
-                    V1NFSVolumeSource(
-                        server=NFS_SERVER,
-                        path=NFS_TARED_SHARE,
-                        read_only=True
-                    ),
-                    name=TARED_COMMITS_VOL_NAME
-                )
-            ],
+            volumes=kaniko_volumes(secret_vol, tar_vol),
             restart_policy="Never",
             security_context=V1PodSecurityContext(
                 fs_group=450
             )
         )
     )
+
+
+def kaniko_mounts(secret_volume, tar_vol, context_dir):
+    return [
+        V1VolumeMount(
+            name=secret_volume,
+            mount_path="/kaniko/.docker"
+        ),
+        V1VolumeMount(
+            name=tar_vol,
+            mount_path=context_dir
+        )
+    ]
+
+
+def kaniko_volumes(secret_volume, tar_vol):
+    return [
+        V1Volume(
+            V1SecretVolumeSource(
+                secret_name="regcred",
+                items=V1KeyToPath(
+                            path="config.json", key=".dockerconfigjson")
+            ),
+            name=secret_volume
+        ),
+        V1Volume(
+            V1EmptyDirVolumeSource(medium="Memory"),
+            name=tar_vol
+        )
+    ]
 
 
 def config_map(config_name: str, config_data: Dict[str, str]):
@@ -67,63 +93,28 @@ def config_map(config_name: str, config_data: Dict[str, str]):
     )
 
 
-def one_pod(identifier: str, image_name: str, app_config_map_name: str, app_config_mount: str, tester_env: str) -> V1Pod:
+def one_pod(identifier: str, image_name: str, app_config_map_name: str, app_config_path: str, tester_env: str, report_id: str) -> V1Pod:
+    app_config_vol = f"{identifier}-app-config"
+    adapter_vol = f"{identifier}-adapter"
+    report_vol = f"{identifier}-reports"
+
     return V1Pod(
-        V1ObjectMeta(name=f"{identifier}-pod"),
+        V1ObjectMeta(name=f"{identifier}-pod", namespace=NAMESPACE),
         V1PodSpec(
-            initContainers=[V1Container(
-                name="adapter-injector",
-                image="gcr.io/google-containers/busybox:latest",
-                command=["wget"],
-                args=["-O", f"{ADAPTER_DOWNLOAD_FOLDER}/performance-test-adapter", "http://test-orchestrator.svc.cluster.local/performance-test-adapter",
-                      "&&", "chmod +x", "/downloads/performance-test-adapter"],
-                volume_mounts=[
-                    V1VolumeMount(
-                        name=ADAPTER_SHARED_VOL_NAME,
-                        mount_path=ADAPTER_DOWNLOAD_FOLDER
-                    )
-                ]
-            )],
+            initContainers=[adapter_init_container(adapter_vol)],
             containers=[V1Container(
                 name=f"{identifier}-combined",
                 image=image_name,
-                command=[f"{ADAPTER_DOWNLOAD_FOLDER}/adapter"],
+                command=[ADAPTER_DIR + ADAPTER_BIN],
                 env=[
                     V1EnvVar(name="TESTER_CONFIG", value=tester_env),
+                    V1EnvVar(name="REPORT_ID", value=report_id),
                 ],
-                volume_mounts=[
-                    V1VolumeMount(
-                        name=TEST_REPORT_VOL_NAME,
-                        mount_path="/reports"
-                    ),
-                    V1VolumeMount(
-                        name=APP_CONFIG_MAP_VOL_NAME,
-                        mount_path=app_config_mount
-                    ),
-                    V1VolumeMount(
-                        name=ADAPTER_SHARED_VOL_NAME,
-                        mount_path=ADAPTER_DOWNLOAD_FOLDER
-                    )
-                ]
+                volume_mounts=one_pod_mounts(
+                    app_config_path, app_config_vol, adapter_vol, report_vol)
             )],
-            volumes=[
-                V1Volume(
-                    V1NFSVolumeSource(
-                        server=NFS_SERVER,
-                        path=NFS_REPORT_SHARE,
-                        read_only=False
-                    ),
-                    name=TEST_REPORT_VOL_NAME
-                ),
-                V1Volume(
-                    V1ConfigMapVolumeSource(name=app_config_map_name),
-                    name=APP_CONFIG_MAP_VOL_NAME
-                ),
-                V1Volume(
-                    V1EmptyDirVolumeSource(medium="Memory"),
-                    name=ADAPTER_SHARED_VOL_NAME
-                )
-            ],
+            volumes=one_pod_volumes(
+                app_config_map_name, app_config_vol, adapter_vol, report_vol),
             restart_policy="Never",
             security_context=V1PodSecurityContext(
                 fs_group=450
@@ -134,71 +125,62 @@ def one_pod(identifier: str, image_name: str, app_config_map_name: str, app_conf
     )
 
 
-def one_pod(identifier: str, app_image_name: str, tester_image_name: str, app_config_map_name: str, app_config_mount: str, tester_env: str) -> V1Pod:
+def one_pod_volumes(app_config_map_name, app_config_vol, adapter_vol):
+    return [
+        V1Volume(
+            V1ConfigMapVolumeSource(name=app_config_map_name),
+            name=app_config_vol
+        ),
+        V1Volume(
+            V1EmptyDirVolumeSource(medium="Memory"),
+            name=adapter_vol
+        )
+    ]
+
+
+def one_pod_mounts(app_config_mount, app_config_vol, adapter_vol):
+    return [
+        V1VolumeMount(
+            name=app_config_vol,
+            mount_path=app_config_mount
+        ),
+        V1VolumeMount(
+            name=adapter_vol,
+            mount_path=ADAPTER_DIR
+        )
+    ]
+
+
+def two_pod(identifier: str, app_image_name: str, tester_image_name: str, app_config_map_name: str, app_config_path: str, tester_env: str, report_id: str) -> V1Pod:
+    app_config_vol = f"{identifier}-app-config"
+    adapter_vol = f"{identifier}-adapter"
+    report_vol = f"{identifier}-reports"
+
     return V1Pod(
-        V1ObjectMeta(name=f"{identifier}-pod"),
+        V1ObjectMeta(name=f"{identifier}-pod", namespace=NAMESPACE),
         V1PodSpec(
-            initContainers=[V1Container(
-                name="adapter-injector",
-                image="gcr.io/google-containers/busybox:latest",
-                command=["wget"],
-                args=["-O", f"{ADAPTER_DOWNLOAD_FOLDER}/performance-test-adapter", "http://test-orchestrator.svc.cluster.local/performance-test-adapter",
-                      "&&", "chmod +x", "/downloads/performance-test-adapter"],
-                volume_mounts=[
-                    V1VolumeMount(
-                        name=ADAPTER_SHARED_VOL_NAME,
-                        mount_path=ADAPTER_DOWNLOAD_FOLDER
-                    )
-                ]
-            )],
+            initContainers=[adapter_init_container(adapter_vol)],
             containers=[
                 V1Container(
                     name=f"{identifier}-app",
                     image=app_image_name,
-                    volume_mounts=[
-                        V1VolumeMount(
-                            name=APP_CONFIG_MAP_VOL_NAME,
-                            mount_path=app_config_mount,
-                        )
-                    ]
+                    volume_mounts=two_pod_app_mounts(
+                        app_config_path, app_config_vol)
                 ),
                 V1Container(
                     name=f"{identifier}-tester",
                     image=tester_image_name,
-                    command=[f"{ADAPTER_DOWNLOAD_FOLDER}/adapter"],
+                    command=[ADAPTER_DIR + ADAPTER_BIN],
                     env=[
                         V1EnvVar(name="TESTER_CONFIG", value=tester_env),
+                        V1EnvVar(name="REPORT_ID", value=report_id),
                     ],
-                    volume_mounts=[
-                        V1VolumeMount(
-                            name=TEST_REPORT_VOL_NAME,
-                            mount_path="/reports"
-                        ),
-                        V1VolumeMount(
-                            name=ADAPTER_SHARED_VOL_NAME,
-                            mount_path=ADAPTER_DOWNLOAD_FOLDER
-                        )
-                    ]
+                    volume_mounts=two_pod_tester_mounts(
+                        adapter_vol, report_vol)
                 )
             ],
-            volumes=[
-                V1Volume(
-                    V1NFSVolumeSource(
-                        server=NFS_SERVER,
-                        path=NFS_REPORT_SHARE,
-                        read_only=False
-                    ),
-                    name=TEST_REPORT_VOL_NAME
-                ),
-                V1Volume(
-                    V1ConfigMapVolumeSource(name=app_config_map_name),
-                    name=APP_CONFIG_MAP_VOL_NAME
-                ),
-                V1Volume(
-                    V1EmptyDirVolumeSource(medium="Memory"),
-                    name=ADAPTER_SHARED_VOL_NAME
-                )
-            ],
+            volumes=two_pod_volumes(
+                app_config_map_name, app_config_vol, adapter_vol),
             restart_policy="Never",
             security_context=V1PodSecurityContext(
                 fs_group=450
@@ -207,3 +189,34 @@ def one_pod(identifier: str, app_image_name: str, tester_image_name: str, app_co
         kind="Pod",
         api_version="v1"
     )
+
+
+def two_pod_app_mounts(app_config_mount, app_config_vol):
+    return [
+        V1VolumeMount(
+            name=app_config_vol,
+            mount_path=app_config_mount,
+        )
+    ]
+
+
+def two_pod_tester_mounts(adapter_vol):
+    return [
+        V1VolumeMount(
+            name=adapter_vol,
+            mount_path=ADAPTER_DIR
+        )
+    ]
+
+
+def two_pod_volumes(app_config_map_name, app_config_vol, adapter_vol):
+    return [
+        V1Volume(
+            V1ConfigMapVolumeSource(name=app_config_map_name),
+            name=app_config_vol
+        ),
+        V1Volume(
+            V1EmptyDirVolumeSource(medium="Memory"),
+            name=adapter_vol
+        )
+    ]

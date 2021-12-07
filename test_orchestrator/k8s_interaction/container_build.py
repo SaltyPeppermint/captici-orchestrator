@@ -5,16 +5,17 @@ from k8s_interaction import k8s_api
 from k8s_interaction import templates
 from storage import projects
 from storage import repositories as repos
+from storage import reports
+from storage import tars
 
 
 def build_app(project_id: int, commit_hash: str) -> str:
-    repos.tar_into(project_id, commit_hash)
+    tar_id = tars.tar_into(project_id, commit_hash)
     project_name = projects.id2name(project_id)
-    tar_path = f"/tars/{project_id}-{project_name}/{commit_hash}.tar.gz"
     build_name = f"kaniko-{project_id}-{project_name}-{commit_hash}"
     image_name = f"{CONTAINER_REGISTRY_URL}/{CONTAINER_REGISTRY_USER}/{project_id}-{project_name}:{commit_hash}"
 
-    pod_manifest = templates.build_pod(build_name, image_name, tar_path)
+    pod_manifest = templates.build_pod(build_name, image_name, tar_id)
     k8s_api.execute_manifest(pod_manifest)
     return image_name
 
@@ -29,6 +30,8 @@ def run_tests(project_id: int, commit_hash: str, tester_env: str, app_configs: L
 
     for test_id in range(len(app_configs)):
         identifier = f"test-{test_id}-{project_id}-{project_name}-{commit_hash}"
+        report_id = reports.ReportInfo(
+            project_id, commit_hash, test_id).serialize()
         app_config_map_name = f"{identifier}-app-config"
 
         config_map_manifest = templates.config_map(
@@ -36,10 +39,10 @@ def run_tests(project_id: int, commit_hash: str, tester_env: str, app_configs: L
 
         if(is_two_container):
             pod_manifest = templates.two_pods(
-                identifier, app_image_name, tester_image_name, app_config_map_name, app_config_mount, tester_env)
+                identifier, app_image_name, tester_image_name, app_config_map_name, app_config_mount, tester_env, report_id)
         else:
             pod_manifest = templates.one_pod(
-                identifier, app_image_name, app_config_map_name, app_config_mount, tester_env)
+                identifier, app_image_name, app_config_map_name, app_config_mount, tester_env, report_id)
 
         k8s_api.execute_manifest(config_map_manifest)
         k8s_api.execute_manifest(pod_manifest)
