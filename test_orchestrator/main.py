@@ -4,6 +4,8 @@ from fastapi import FastAPI, status
 from fastapi.exceptions import HTTPException
 from fastapi.params import Body, Path, Query
 
+import storage.sql.database
+
 import storage.projects
 import storage.configs
 import storage.tars
@@ -13,6 +15,7 @@ import evaluation.reports
 import testing.project
 import testing.commit
 
+Session = storage.sql.database.init_db()
 app = FastAPI()
 
 

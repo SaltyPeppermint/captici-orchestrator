@@ -1,7 +1,7 @@
 import git
 
 from storage import projects
-from settings import REPOS_DIR, NFS_MOUNT
+from settings import config
 
 
 def get_git_cred(project_id: int):
@@ -22,4 +22,6 @@ def update_repo(repo_path: str):
 
 
 def get_repo_path(project_id):
-    return f"{NFS_MOUNT}{REPOS_DIR}/{project_id}-{projects.id2name(project_id)}"
+    nfs_mount = config["NFS"]["mount"]
+    repos_dir = config["Directories"]["repos_dir"]
+    return f"{nfs_mount}{repos_dir}/{project_id}-{projects.id2name(project_id)}"

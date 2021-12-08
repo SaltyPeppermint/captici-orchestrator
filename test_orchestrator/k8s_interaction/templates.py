@@ -1,8 +1,11 @@
 from typing import Dict
-from settings import NAMESPACE, ADAPTER_BIN, ADAPTER_DIR, TAR_DIR
-from kubernetes.client import V1ConfigMap, V1Pod, V1ObjectMeta, V1PodSpec, V1Container, V1Volume, V1VolumeMount, V1SecretVolumeSource, V1NFSVolumeSource, V1KeyToPath, V1PodSecurityContext, V1EnvVar, V1EmptyDirVolumeSource, V1ConfigMapVolumeSource
+from settings import config
+from kubernetes.client import V1ConfigMap, V1Pod, V1ObjectMeta, V1PodSpec, V1Container, V1Volume, V1VolumeMount, V1SecretVolumeSource, V1KeyToPath, V1PodSecurityContext, V1EnvVar, V1EmptyDirVolumeSource, V1ConfigMapVolumeSource
 
-DOWNLOAD_STRING = f"'wget -O {ADAPTER_DIR + ADAPTER_BIN} http://test-orchestrator.svc.cluster.local/adapter && chmod +x {ADAPTER_DIR + ADAPTER_BIN}'"
+namespace = config["K8s"]["NAMESPACE"]
+adapter_dir = config["Directories"]["adapter_dir"]
+adapter_bin = config["Directories"]["adapter_bin"]
+download_string = f"'wget -O {adapter_dir + adapter_bin} http://test-orchestrator.svc.cluster.local/adapter && chmod +x {adapter_dir + adapter_bin}'"
 
 
 def adapter_init_container(adapter_vol):
@@ -10,9 +13,9 @@ def adapter_init_container(adapter_vol):
         name="adapter-injector",
         image="gcr.io/google-containers/busybox:latest",
         command=["sh -c"],
-        args=[DOWNLOAD_STRING],
+        args=[download_string],
         volume_mounts=[V1VolumeMount(
-            name=adapter_vol, mount_path=ADAPTER_DIR)
+            name=adapter_vol, mount_path=adapter_dir)
         ]
     )
 
@@ -24,7 +27,7 @@ def kaniko_init_container(tar_vol, tar_path):
         command=["wget"],
         args=["-O", "context.tar.gz", tar_path],
         volume_mounts=[V1VolumeMount(
-            name=tar_vol, mount_path=ADAPTER_DIR)
+            name=tar_vol, mount_path=adapter_dir)
         ]
     )
 
@@ -33,8 +36,9 @@ def build_pod(build_name: str, image_name: str, tar_path: str) -> V1Pod:
     secret_vol = "kaniko-secret"
     tar_vol = "tared-commits"
     context_dir = "/context"
+
     return V1Pod(
-        V1ObjectMeta(name=build_name, namespace=NAMESPACE),
+        V1ObjectMeta(name=build_name, namespace=namespace),
         V1PodSpec(
             initContainers=[kaniko_init_container(tar_vol, tar_path)],
             containers=[V1Container(
@@ -99,13 +103,13 @@ def one_pod(identifier: str, image_name: str, app_config_map_name: str, app_conf
     report_vol = f"{identifier}-reports"
 
     return V1Pod(
-        V1ObjectMeta(name=f"{identifier}-pod", namespace=NAMESPACE),
+        V1ObjectMeta(name=f"{identifier}-pod", namespace=namespace),
         V1PodSpec(
             initContainers=[adapter_init_container(adapter_vol)],
             containers=[V1Container(
                 name=f"{identifier}-combined",
                 image=image_name,
-                command=[ADAPTER_DIR + ADAPTER_BIN],
+                command=[adapter_dir + adapter_bin],
                 env=[
                     V1EnvVar(name="TESTER_CONFIG", value=tester_env),
                     V1EnvVar(name="REPORT_ID", value=report_id),
@@ -146,7 +150,7 @@ def one_pod_mounts(app_config_mount, app_config_vol, adapter_vol):
         ),
         V1VolumeMount(
             name=adapter_vol,
-            mount_path=ADAPTER_DIR
+            mount_path=adapter_dir
         )
     ]
 
@@ -157,7 +161,7 @@ def two_pod(identifier: str, app_image_name: str, tester_image_name: str, app_co
     report_vol = f"{identifier}-reports"
 
     return V1Pod(
-        V1ObjectMeta(name=f"{identifier}-pod", namespace=NAMESPACE),
+        V1ObjectMeta(name=f"{identifier}-pod", namespace=namespace),
         V1PodSpec(
             initContainers=[adapter_init_container(adapter_vol)],
             containers=[
@@ -170,7 +174,7 @@ def two_pod(identifier: str, app_image_name: str, tester_image_name: str, app_co
                 V1Container(
                     name=f"{identifier}-tester",
                     image=tester_image_name,
-                    command=[ADAPTER_DIR + ADAPTER_BIN],
+                    command=[adapter_dir + adapter_bin],
                     env=[
                         V1EnvVar(name="TESTER_CONFIG", value=tester_env),
                         V1EnvVar(name="REPORT_ID", value=report_id),
@@ -204,7 +208,7 @@ def two_pod_tester_mounts(adapter_vol):
     return [
         V1VolumeMount(
             name=adapter_vol,
-            mount_path=ADAPTER_DIR
+            mount_path=adapter_dir
         )
     ]
 

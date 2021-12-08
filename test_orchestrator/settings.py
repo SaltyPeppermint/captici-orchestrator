@@ -1,17 +1,10 @@
-NAMESPACE = "cdpb-tester"
-# NAMESPACE = "default"
-NFS_SERVER = "oersted.informatik.uni-leipzig.de"
-# NFS_SERVER = "127.0.0.1"
-# NFS_TARED_SHARE = "/raid/kube_storage/nicole_bsc/tars"
-# NFS_REPORT_SHARE = "/raid/kube_storage/nicole_bsc/reports"
+import configparser
+import os
 
-NFS_SHARE = "/mnt/nfs_share"
-NFS_MOUNT = "/var/nfs"
-
-REPOS_DIR = "/repos"
-TAR_DIR = "/tars"
-ADAPTER_DIR = "/downloads"
-ADAPTER_BIN = "/adapter"
-
-CONTAINER_REGISTRY_URL = "registry.kube.informatik.uni-leipzig.de"
-CONTAINER_REGISTRY_USER = "test-orchestrator"
+env = os.environ.get("DEBUG")
+if env == "on":
+    config = configparser.ConfigParser()
+    config.read_file(open("../config/test.ini"))
+else:
+    config = configparser.ConfigParser()
+    config.read_file(open("../config/production.ini"))

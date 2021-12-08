@@ -9,6 +9,7 @@
         "kubernetes",
         "pydantic",
         "regcred",
+        "sqla",
         "starlette",
         "uvicorn"
     ],

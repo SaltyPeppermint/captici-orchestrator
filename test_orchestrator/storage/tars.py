@@ -4,9 +4,9 @@ import tarfile
 import os
 from typing import Iterable
 
-import repositories as repos
+from storage import repositories as repos
 from storage import projects
-from settings import TAR_DIR, NFS_MOUNT
+from settings import config
 
 
 class TarInfo:
@@ -31,7 +31,9 @@ def get_tar_path(tar_folder, commit_hash) -> str:
 
 
 def get_tar_folder(project_id) -> str:
-    return f"{NFS_MOUNT}{TAR_DIR}/{project_id}-{projects.id2name(project_id)}"
+    nfs_mount = config["NFS"]["mount"]
+    tar_dir = config["Directories"]["tar_dir"]
+    return f"{nfs_mount}{tar_dir}/{project_id}-{projects.id2name(project_id)}"
 
 
 def tar_id2tar_path(tar_id) -> str:

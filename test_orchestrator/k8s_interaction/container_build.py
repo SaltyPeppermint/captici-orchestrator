@@ -1,5 +1,5 @@
 from typing import Dict, List
-from settings import *
+from settings import config
 
 from k8s_interaction import k8s_api
 from k8s_interaction import templates
@@ -13,7 +13,10 @@ def build_app(project_id: int, commit_hash: str) -> str:
     tar_id = tars.tar_into(project_id, commit_hash)
     project_name = projects.id2name(project_id)
     build_name = f"kaniko-{project_id}-{project_name}-{commit_hash}"
-    image_name = f"{CONTAINER_REGISTRY_URL}/{CONTAINER_REGISTRY_USER}/{project_id}-{project_name}:{commit_hash}"
+
+    registry_url = config["Registry"]["url"]
+    registry_user = config["Registry"]["user"]
+    image_name = f"{registry_url}/{registry_user}/{project_id}-{project_name}:{commit_hash}"
 
     pod_manifest = templates.build_pod(build_name, image_name, tar_id)
     k8s_api.execute_manifest(pod_manifest)

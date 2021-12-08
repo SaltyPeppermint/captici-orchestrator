@@ -31,3 +31,4 @@ pyproject.toml
 kubernetes
 repos
 tars
+**/config

@@ -1,7 +1,7 @@
 from kubernetes import config
 from kubernetes.client.api import core_v1_api
 from kubernetes.client.configuration import Configuration
-from settings import *
+from settings import config
 import time
 
 
@@ -18,18 +18,21 @@ def get_kube_api():
 
 
 def execute_manifest(manifest):
+
     api_instance = get_kube_api()
 
     name = manifest["metadata"]["name"]
+    namespace = config["K8s"]["namespace"]
+
     resp = None
 
     print(f"Creating pod {name} ...")
 
     resp = api_instance.create_namespaced_pod(body=manifest,
-                                              namespace=NAMESPACE)
+                                              namespace=namespace)
     while True:
         resp = api_instance.read_namespaced_pod(name=name,
-                                                namespace=NAMESPACE)
+                                                namespace=namespace)
         if resp.status.phase != "Pending":
             break
         time.sleep(1)
