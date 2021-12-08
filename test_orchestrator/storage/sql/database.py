@@ -16,6 +16,10 @@ def init_db():
     Base.metadata.create_all(engine, checkfirst=True)
 
 
+def get_session():
+    return Session()
+
+
 db_type = config["DB"]["type"]
 db_location = config["NFS"]["mount"] + "/sqlite.db"
 print(f"{db_type}://{db_location}")
