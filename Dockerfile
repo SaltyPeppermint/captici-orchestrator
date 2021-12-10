@@ -22,7 +22,7 @@ COPY . /app
 RUN chown -R appuser /app
 
 USER appuser
-WORKDIR /app/test_orchestrator
+WORKDIR /app
 
 # During debugging, this entry point will be overridden. For more information, please refer to https://aka.ms/vscode-docker-python-debug
 CMD ["python3", "-m", "test_orchestrator"]
