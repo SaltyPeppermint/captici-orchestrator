@@ -8,6 +8,7 @@
         "KANIKO",
         "kube",
         "kubernetes",
+        "perfs",
         "pydantic",
         "regcred",
         "sqla",

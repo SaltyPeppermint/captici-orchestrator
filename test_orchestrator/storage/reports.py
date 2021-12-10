@@ -1,8 +1,16 @@
-from typing import Iterable
 import pickle
+from typing import Dict, Iterable, List, Optional
+
+from pydantic.main import BaseModel
 
 
-class ReportInfo:
+class Report(BaseModel):
+    individual_results: Dict[int, str]
+    is_regression: bool
+    regressing_config: Optional[List[int]] = None
+
+
+class ReportMeta:
     def __init__(self, project_id: int, commit: str, test_id: int):
         self.project_id = project_id
         self.commit = commit
@@ -22,5 +30,11 @@ class ReportInfo:
 
 
 def add(report_id: str, report_content: str):
-    project_id, commit, test_id = ReportInfo.deserialize(report_id)
+    project_id, commit, test_id = ReportMeta.deserialize(report_id)
     return True
+
+
+def get_test_report(project_id: int, test_id: int) -> Report:
+    test_report = Report(individual_results={
+        2: "AS", 3: "asdf"}, is_regression=True, regressing_config=[2, 3])
+    return test_report

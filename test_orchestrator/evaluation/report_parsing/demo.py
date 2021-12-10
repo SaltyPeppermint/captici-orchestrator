@@ -1,5 +1,12 @@
 from junitparser import JUnitXml, Failure, Skipped, Error
-from .errors import ParsingError, ParsingWarning
+
+
+class JunitParsingError(ValueError):
+    pass
+
+
+class JunitParsingWarning(UserWarning):
+    pass
 
 
 def report2value(report: str) -> float:
@@ -14,16 +21,16 @@ def report2value(report: str) -> float:
             if case.result:
                 print(case.result)
                 if isinstance(case.result, Error):
-                    raise ParsingError(
+                    raise JunitParsingError(
                         "You're test raised an error according to Junit. You have bigger problems than performance.", case.result.message)
                 elif isinstance(case.result, Failure):
-                    raise ParsingError(
+                    raise JunitParsingError(
                         "You're test failed according to Junit. You have bigger problems than performance.", case.result.message)
                 elif isinstance(case.result, Skipped):
-                    raise ParsingWarning(
+                    raise JunitParsingWarning(
                         "You're skipped tests. You sure about that?", case.result.message)
                 else:
-                    raise ParsingError(
+                    raise JunitParsingError(
                         "You completely broke the junit, this result should not be possible.Congratulations!", case.result.message)
             else:
                 total_time += float(case.time)
