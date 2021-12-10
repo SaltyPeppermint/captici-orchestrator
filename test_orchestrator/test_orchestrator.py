@@ -1,5 +1,4 @@
 from starlette.responses import FileResponse
-import uvicorn
 from fastapi import FastAPI, status
 from fastapi.exceptions import HTTPException
 from fastapi.params import Body, Path, Query
@@ -117,13 +116,3 @@ async def request_project_test(report_id: str = Path(...,
                                                      max_length=1000)):
     tar_path = tars_storage.tar_id2tar_path(report_id)
     return FileResponse(tar_path)
-
-
-def start():
-    """Launched with `poetry run start` at root level"""
-    uvicorn.run("test_orchestrator.test_orchestrator:app",
-                host="0.0.0.0", port=8000, reload=True)
-
-
-if __name__ == "__main__":
-    start()

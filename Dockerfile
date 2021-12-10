@@ -25,4 +25,4 @@ USER appuser
 WORKDIR /app/test_orchestrator
 
 # During debugging, this entry point will be overridden. For more information, please refer to https://aka.ms/vscode-docker-python-debug
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["python3", "-m", "test_orchestrator"]
