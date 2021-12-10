@@ -4,9 +4,9 @@ import tarfile
 import os
 from typing import Iterable
 
-from storage import repositories as repos
-from storage import projects
-from settings import config
+from . import repositories
+from . import projects
+from test_orchestrator.settings import config
 
 
 class TarInfo:
@@ -45,12 +45,12 @@ def tar_id2tar_path(tar_id) -> str:
 def tar_into(project_id: int, commit_hash: str) -> str:
     tar_folder = get_tar_folder(project_id)
     tar_path = get_tar_path(tar_folder, commit_hash)
-    repo_path = repos.get_repo_path(project_id)
+    repo_path = repositories.get_repo_path(project_id)
 
     if not os.path.exists(repo_path):
-        repo = repos.clone_repo(project_id, repo_path)
+        repo = repositories.clone_repo(project_id, repo_path)
     else:
-        repo = repos.update_repo(repo_path)
+        repo = repositories.update_repo(repo_path)
 
     main_branch = repo.active_branch.name
     repo.git.checkout(commit_hash)

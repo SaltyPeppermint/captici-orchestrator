@@ -1,7 +1,4 @@
-from typing import Tuple
-from storage import reports
-import storage.configs
-import storage.projects
+from test_orchestrator.storage import reports, configs, projects
 
 
 def accept_report(report_identifier: str, report_content: str):

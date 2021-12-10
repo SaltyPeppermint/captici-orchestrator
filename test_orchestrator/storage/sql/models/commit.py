@@ -1,4 +1,4 @@
-from storage.sql.models.base import Base
+from .base import Base
 from sqlalchemy import Sequence, Column, Boolean, Integer, String, ForeignKey
 
 

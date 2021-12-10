@@ -1,7 +1,7 @@
 from typing import Dict, List, Optional
 from pydantic import BaseModel
-from k8s_interaction import container_build
-from storage import projects
+from test_orchestrator.k8s_interaction import container_build
+from test_orchestrator.storage import projects
 
 
 class CommitTestReport(BaseModel):

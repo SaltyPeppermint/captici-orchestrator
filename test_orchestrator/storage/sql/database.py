@@ -3,13 +3,13 @@ import sqlalchemy as sqla
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-from settings import config
+from test_orchestrator.settings import config
 
-from storage.sql.models.base import Base
-from storage.sql.models.report import Report
-from storage.sql.models.config import Config
-from storage.sql.models.commit import Commit
-from storage.sql.models.project import Project
+from .models.base import Base
+from .models.report import Report
+from .models.config import Config
+from .models.commit import Commit
+from .models.project import Project
 
 
 def init_db():

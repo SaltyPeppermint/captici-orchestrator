@@ -1,7 +1,7 @@
 import git
 
-from storage import projects
-from settings import config
+from . import projects
+from test_orchestrator.settings import config
 
 
 def get_git_cred(project_id: int):

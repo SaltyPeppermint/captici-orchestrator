@@ -1,12 +1,9 @@
 from typing import Dict, List
-from settings import config
 
-from k8s_interaction import k8s_api
-from k8s_interaction import templates
-from storage import projects
-from storage import repositories as repos
-from storage import reports
-from storage import tars
+from . import k8s_api
+from . import templates
+from test_orchestrator.storage import projects, reports, tars
+from test_orchestrator.settings import config
 
 
 def build_app(project_id: int, commit_hash: str) -> str:
