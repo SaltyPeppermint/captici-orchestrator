@@ -3,9 +3,9 @@ import pickle
 
 
 class ReportInfo:
-    def __init__(self, project_id: int, commit_hash: str, test_id: int):
+    def __init__(self, project_id: int, commit: str, test_id: int):
         self.project_id = project_id
-        self.commit_hash = commit_hash
+        self.commit = commit
         self.test_id = test_id
 
     def serialize(self) -> str:
@@ -17,5 +17,10 @@ class ReportInfo:
 
     def __iter__(self) -> Iterable:
         yield self.project_id
-        yield self.commit_hash
+        yield self.commit
         yield self.test_id
+
+
+def add(report_id: str, report_content: str):
+    project_id, commit, test_id = ReportInfo.deserialize(report_id)
+    return True

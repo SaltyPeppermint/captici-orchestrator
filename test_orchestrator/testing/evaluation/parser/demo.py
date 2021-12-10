@@ -1,5 +1,5 @@
 from junitparser import JUnitXml, Failure, Skipped, Error
-from ..parsing import ParsingError, ParsingWarning
+from .errors import ParsingError, ParsingWarning
 
 
 def report2value(report: str) -> float:
