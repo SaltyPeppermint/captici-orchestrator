@@ -4,6 +4,7 @@
         "cdpb",
         "dockerconfigjson",
         "informatik",
+        "junitparser",
         "KANIKO",
         "kube",
         "kubernetes",

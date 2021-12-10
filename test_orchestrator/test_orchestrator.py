@@ -14,8 +14,6 @@ from test_orchestrator.testing import project as project_testing
 
 from test_orchestrator.evaluation import reports
 
-from test_orchestrator.storage.sql.database import init_db
-Session = init_db()
 app = FastAPI()
 
 

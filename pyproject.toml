@@ -12,6 +12,7 @@ kubernetes = "^19.15.0"
 GitPython = "^3.1.24"
 uvicorn = "^0.15.0"
 SQLAlchemy = "^1.4.27"
+junitparser = "^2.2.0"
 
 [tool.poetry.dev-dependencies]
 autopep8 = "^1.5.7"
