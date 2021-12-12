@@ -23,11 +23,11 @@ async def add_project(project_id: int = Path(..., title="Id of the project to ad
 @router.get("/get/{project_id}", status_code=status.HTTP_200_OK)
 async def register_project(project_id: int = Path(..., title="Id of the project to get config from", gt=0),
                            config_id: int = Query(..., title="Id of the config to get", gt=0)):
-    config = storage.configs.get(project_id, config_id)
+    config = storage.configs.get_config_content(project_id, config_id)
     return {"config": config}
 
 
 @router.get("/get_all/{project_id}", status_code=status.HTTP_200_OK)
 async def register_project(project_id: int = Path(..., title="Id of the project to test", gt=0)):
-    config_ids = storage.configs.get_all(project_id)
+    config_ids = storage.configs.get_all_ids(project_id)
     return {"config_ids": config_ids}

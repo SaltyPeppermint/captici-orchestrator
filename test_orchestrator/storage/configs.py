@@ -6,11 +6,11 @@ def store(project_id: int, config: str) -> int:
     return config_id
 
 
-def get(project_id: int, config_id: int) -> str:
+def get_config_content(project_id: int, config_id: int) -> str:
     config = ""
     return config
 
 
-def get_all(project_id: int) -> List[int]:
+def get_all_ids(project_id: int) -> List[int]:
     config_ids = [0, 0]
     return config_ids

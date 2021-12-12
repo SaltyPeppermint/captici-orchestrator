@@ -53,7 +53,7 @@ def build_commit(project_id: int, commit: str) -> str:
     return image_name
 
 
-def run_tests(project_id: int, commit: str, tester_env: str, app_configs: List[Dict[str, str]]):
+def run_tests(project_id: int, commit: str, tester_env: str, app_configs: List[str]):
     is_two_container = storage.projects.is_two_container(project_id)
     app_config_mount = storage.projects.id2app_config_mount(project_id)
     project_name = storage.projects.id2name(project_id)
