@@ -1,5 +1,7 @@
 import math
 from typing import List
+
+from sqlalchemy.orm import Session
 from test_orchestrator.storage import repositories
 
 from test_orchestrator.testing.test import SelectionStrategy
@@ -36,8 +38,8 @@ def uniform_select(commit_hashs: List[str], n_commits: int) -> List[str]:
 
 
 def select_commits(
-        project_id: int, first_commit_hash: str, last_commit_hash: str, n_commits: int) -> List[str]:
-    all_commit_hashs = repositories.get_all_commits(project_id)
+        db: Session, project_id: int, first_commit_hash: str, last_commit_hash: str, n_commits: int) -> List[str]:
+    all_commit_hashs = repositories.get_all_commits(db, project_id)
     commits_hashs_in_range = commits_between(
         all_commit_hashs, first_commit_hash, last_commit_hash)
     return uniform_select(commits_hashs_in_range, n_commits)

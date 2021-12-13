@@ -1,9 +1,11 @@
 
 import sqlalchemy as sqla
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+
 from test_orchestrator.settings import config
 
-from .models import Base, Project, Commit, Config, Result, Test, ResultsInTest
+from .models import *
 
 
 def init_db():

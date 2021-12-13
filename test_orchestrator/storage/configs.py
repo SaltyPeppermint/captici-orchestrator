@@ -1,16 +1,26 @@
 from typing import List
+from sqlalchemy.orm import Session
+
+from .sql import models
 
 
-def store(project_id: int, config: str) -> int:
-    config_id = 0
-    return config_id
+def id2result_ids(db: Session, config_id: int) -> List[int]:
+    return (db
+            .query(models.Result.id)
+            .filter(models.Result.config_id == config_id)
+            .all())
 
 
-def ids2content(project_id: int, config_id: int) -> str:
-    config = ""
-    return config
+def store(db: Session, project_id: int, content: str) -> int:
+    config = models.Config(project_id, content)
+    db.add(config)
+    db.commit()
+    db.refresh(config)
+    return config.id
 
 
-def project_id2config_ids(project_id: int) -> List[int]:
-    config_ids = [0, 0]
-    return config_ids
+def id2content(db: Session, config_id: int) -> str:
+    return (db
+            .query(models.Config.content)
+            .filter(models.Config.id == config_id)
+            .one())

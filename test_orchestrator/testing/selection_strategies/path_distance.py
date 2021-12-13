@@ -1,6 +1,8 @@
 import itertools
 from typing import List, Tuple
 
+from sqlalchemy.orm import Session
+
 from test_orchestrator import storage
 
 
@@ -20,15 +22,31 @@ def file_path_distance(path1: str, path2: str) -> int:
     return len(arr1) + len(arr2) - 2 * common_prefix_len(arr1, arr2)
 
 
-def commit_distance(commit1: str, commit2: str) -> float:
-    commit_files1 = storage.repositories.get_filepaths_in_commit(commit1)
-    commit_files2 = storage.repositories.get_filepaths_in_commit(commit2)
+def commit_distance(
+        commit_files1: List[str], commit_files2: List[str]) -> float:
+
     path_product = itertools.product(commit_files1, commit_files2)
     path_distances = itertools.starmap(path_product)
     return sum(path_distances) / len(path_distances)
 
 
-def select(project_id: int, n_configs: int) -> List[int]:
-    storage.configs.project_id2config_ids(project_id)
-    print("Ignoring number and returning all configs")
-    return
+def select(db: Session, project_id: int, n_configs: int) -> List[int]:
+    result_ids = storage.projects.id2result_ids(db, project_id)
+    # TODO Need to specify that this only always works against the current HEAD
+
+    head_filepaths = storage.repositories.get_filepaths_in_commit(
+        db, project_id, "HEAD")
+
+    id_by_distance = {}
+    for result_id in result_ids:
+        commit_id = storage.results.id2commit_id(db, result_ids)
+        commit_hash = storage.commits.id2hash(db, commit_id)
+        commit_filepaths = storage.repositories.get_filepaths_in_commit(
+            db, project_id, commit_hash)
+        distance = commit_distance(head_filepaths, commit_filepaths)
+        id_by_distance[distance] = result_id
+
+    sorted_by_distance = dict(sorted(id_by_distance.items()))
+
+    top_results = sorted_by_distance.values()[:n_configs]
+    return [storage.results.id2config_id(result) for result in top_results]

@@ -1,6 +1,9 @@
+from os import register_at_fork
 from sqlalchemy import Sequence, Column, Boolean, Integer, String, ForeignKey
 from sqlalchemy import Sequence, Column, Boolean, Integer, String, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
+
+from test_orchestrator.api.request_bodies import RegisterRequest
 Base = declarative_base()
 
 
@@ -8,9 +11,28 @@ class Project(Base):
     __tablename__ = "projects"
     id = Column(Integer, Sequence("project_id_seq"), primary_key=True)
     name = Column(String(256), nullable=False)
+    tester_command = Column(String(256), nullable=False)
+    repo_url = Column(String(256), nullable=False)
+    git_user = Column(String(256), nullable=False)
+    main_branch = Column(String(256), nullable=False)
+    auth_token = Column(String(256), nullable=False)
+    two_container = Column(Boolean(), nullable=False)
+    tester_container = Column(String(256))
+    email = Column(String(256))
+
+    def __init__(self, register_req: RegisterRequest):
+        self.repo_url = register_req.repo_url
+        self.git_user = register_req.git_user
+        self.auth_token = register_req.auth_token
+        self.main_branch = register_req.main_branch
+        self.name = register_req.name
+        self.email = register_req.email
+        self.tester_command = register_req.tester_command
+        self.tester_container = register_req.tester_container
+        self.two_container = register_req.two_container
 
     def __repr__(self):
-        return f"<Project(id='{self.id}', name='{self.name}')>"
+        return f"<Project(id='{self.id}', name='{self.name}', tester_command='{self.tester_command}', repo_url='{self.repo_url}', git_user='{self.git_user}', main_branch='{self.main_branch}', auth_token='{self.auth_token}', two_container='{self.two_container}', tester_container='{self.tester_container}', email='{self.email}')>"
 
 
 class Commit(Base):
@@ -44,13 +66,13 @@ class Config(Base):
 class Test(Base):
     __tablename__ = "tests"
     id = Column(Integer, Sequence("test_id_seq"), primary_key=True)
-    finished = Column(Boolean(False), nullable=False)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
 
-    def __init__(self):
-        self.finished = False
+    def __init__(self, project_id):
+        self.project_id = project_id
 
     def __repr__(self):
-        return f"<Test(id='{self.id}', finished='{self.finished}')>"
+        return f"<Test(id='{self.id}', project_id='{self.project_id}')>"
 
 
 class Result(Base):
@@ -61,10 +83,10 @@ class Result(Base):
     content = Column(String(65536))
     finished = Column(Boolean(False), nullable=False)
 
-    def __init__(self, config_id, commit_id, content):
+    def __init__(self, config_id, commit_id):
         self.config_id = config_id
         self.commit_id = commit_id
-        self.content = content
+        self.content = ""
         self.finished = False
 
     def __repr__(self):

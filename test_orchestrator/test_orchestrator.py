@@ -1,10 +1,12 @@
+from sqlalchemy.orm.session import Session
 from starlette.responses import FileResponse
 from fastapi import FastAPI, status
 from fastapi.exceptions import HTTPException
-from fastapi.params import Body, Path, Query
+from fastapi.params import Body, Depends, Path, Query
 
 from test_orchestrator import storage
 from test_orchestrator import api
+from test_orchestrator.storage.sql.database import get_db
 
 
 app = FastAPI()
@@ -19,20 +21,21 @@ async def get_adapter():
 
 
 @app.post("/results/{result_id}", status_code=status.HTTP_200_OK)
-async def request_project_test(
+async def add_result(
     result_id: int = Path(...,
                           title="Id of the result to add", gt=0),
     content: str = Body(...,
                         description="Content of the result as string. Max length of 65536 characters.",
                         max_length=65536)):
-    storage.results.add(result_id, content)
+    storage.results.fill_content(result_id, content)
     return
 
 
 @app.get("/tars/{ser_tar_metadata}", status_code=status.HTTP_200_OK)
 async def request_tar(
-    ser_tar_metadata: str = Path(...,
-                                 description="Serialized Tar Metadata. Max length of 65536 characters.",
-                                 max_length=65536)):
-    tar_path = storage.tars.serialized2tar_path(ser_tar_metadata)
+        ser_tar_metadata: str = Path(...,
+                                     description="Serialized Tar Metadata. Max length of 65536 characters.",
+                                     max_length=65536),
+        db: Session = Depends(get_db)):
+    tar_path = storage.tars.serialized2tar_path(db, ser_tar_metadata)
     return FileResponse(tar_path)

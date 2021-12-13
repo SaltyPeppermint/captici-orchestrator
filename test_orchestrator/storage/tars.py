@@ -4,6 +4,8 @@ import tarfile
 import os
 from typing import Iterable
 
+from sqlalchemy.orm import Session
+
 from . import repositories
 from . import projects
 from test_orchestrator.settings import config
@@ -30,25 +32,25 @@ def get_tar_path(tar_folder, commit_hash) -> str:
     return f"{tar_folder}/{commit_hash}.tar.gz"
 
 
-def get_tar_folder(project_id) -> str:
+def get_tar_folder(db: Session, project_id: int) -> str:
     nfs_mount = config["NFS"]["mount"]
     tar_dir = config["Directories"]["tar_dir"]
-    return f"{nfs_mount}{tar_dir}/{project_id}-{projects.id2name(project_id)}"
+    return f"{nfs_mount}{tar_dir}/{project_id}-{projects.id2name(db, project_id)}"
 
 
-def serialized2tar_path(ser_tar_metadata) -> str:
+def serialized2tar_path(db: Session, ser_tar_metadata) -> str:
     project_id, commit_hash = TarMetadata.deserialize(ser_tar_metadata)
-    tar_folder = get_tar_folder(project_id)
+    tar_folder = get_tar_folder(db, project_id)
     return get_tar_path(tar_folder, commit_hash)
 
 
-def tar_into(project_id: int, commit_hash: str) -> str:
-    tar_folder = get_tar_folder(project_id)
+def tar_into(db: Session, project_id: int, commit_hash: str) -> str:
+    tar_folder = get_tar_folder(db, project_id)
     tar_path = get_tar_path(tar_folder, commit_hash)
-    repo_path = repositories.get_repo_path(project_id)
+    repo_path = repositories.get_repo_path(db, project_id)
 
     if not os.path.exists(repo_path):
-        repo = repositories.clone_repo(project_id, repo_path)
+        repo = repositories.clone_repo(db, project_id, repo_path)
     else:
         repo = repositories.update_repo(repo_path)
 

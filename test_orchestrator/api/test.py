@@ -1,9 +1,11 @@
 # APIRouter creates path operations for item module
 from fastapi import APIRouter, HTTPException, status
 from fastapi.exceptions import HTTPException
-from fastapi.params import Body, Path, Query
+from fastapi.params import Body, Depends, Path, Query
+from sqlalchemy.orm import Session
 
 from test_orchestrator import testing, storage
+from test_orchestrator.storage.sql.database import get_db
 
 # can't import the dict directly otherwise it won't be global any more
 from .request_bodies import TestRequest
@@ -19,21 +21,24 @@ router = APIRouter(
 @router.post("/commit/{project_id}", status_code=status.HTTP_200_OK)
 async def request_commit_test(
         project_id: int = Path(..., title="Project_id to test", gt=0),
-        testing_request: TestRequest = Body(...)):
+        testing_request: TestRequest = Body(...),
+        db: Session = Depends(get_db)):
 
-    test_id = testing.commit.test_multiple_commits(project_id, testing_request)
+    test_id = testing.commit.test_multiple_commits(
+        db, project_id, testing_request)
     return {"test_id": test_id}
 
 
 @router.get("/commit/{project_id}", response_model=TestResponse, status_code=status.HTTP_200_OK)
 async def read_test_report(
         project_id: int = Path(..., title="Id of the tested project", gt=0),
-        test_id: int = Query(..., title="(Id of the test", gt=0)):
+        test_id: int = Query(..., title="(Id of the test", gt=0),
+        db: Session = Depends(get_db)):
 
-    if not storage.tests.does_test_exist(project_id, test_id):
+    if not storage.tests.id2exists(db, project_id, test_id):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Test not found")
-    elif not storage.tests.is_test_finished(project_id, test_id):
+    elif not storage.tests.id2finished(project_id, test_id):
         raise HTTPException(status_code=status.HTTP_202_ACCEPTED,
                             detail="Test not ready")
     else:
