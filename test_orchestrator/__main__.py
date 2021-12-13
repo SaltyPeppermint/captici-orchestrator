@@ -1,5 +1,5 @@
 import uvicorn
-from test_orchestrator.storage.sql.database import init_db
+import test_orchestrator.storage.sql.database
 
 
 def start():
@@ -9,5 +9,5 @@ def start():
 
 
 if __name__ == "__main__":
-    Session = init_db()
+    Session = test_orchestrator.storage.sql.database.init_db()
     start()

@@ -1,9 +1,6 @@
-from os import register_at_fork
-from sqlalchemy import Sequence, Column, Boolean, Integer, String, ForeignKey
 from sqlalchemy import Sequence, Column, Boolean, Integer, String, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 
-from test_orchestrator.api.request_bodies import RegisterRequest
 Base = declarative_base()
 
 
@@ -20,7 +17,8 @@ class Project(Base):
     tester_container = Column(String(256))
     email = Column(String(256))
 
-    def __init__(self, register_req: RegisterRequest):
+    # is RegisterRequest but due to nature of circular depndency i cant import
+    def __init__(self, register_req):  # : RegisterRequest):
         self.repo_url = register_req.repo_url
         self.git_user = register_req.git_user
         self.auth_token = register_req.auth_token
