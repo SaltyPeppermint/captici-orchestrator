@@ -28,13 +28,7 @@ def commit_distance(commit1: str, commit2: str) -> float:
     return sum(path_distances) / len(path_distances)
 
 
-def initial_select(project_id: int) -> Tuple[List[str], List[str]]:
-    # TODO GIT GET INITAL SAMPLING OF COMMITS
-    storage.repositories.get_all_commits
-    commits_to_test = storage.repositories.get_all_commits(project_id)
-    config_ids_to_test = storage.configs.get_all_ids(project_id)
-    configs_to_test = []
-    for config_id in config_ids_to_test:
-        config = storage.configs.get_config_content(project_id, config_id)
-        configs_to_test.append(config)
-    return commits_to_test, configs_to_test
+def select(project_id: int, n_configs: int) -> List[int]:
+    storage.configs.project_id2config_ids(project_id)
+    print("Ignoring number and returning all configs")
+    return

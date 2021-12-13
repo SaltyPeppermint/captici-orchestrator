@@ -1,3 +1,2 @@
-from . import configs, projects, reports, repositories, tars
-from .reports import Report, ReportMeta
+from . import configs, projects, repositories, results, tars, tests
 from .projects import RegisterRequest

@@ -9,25 +9,25 @@ from . import projects
 from test_orchestrator.settings import config
 
 
-class TarInfo:
-    def __init__(self, project_id: int, commit: str):
+class TarMetadata:
+    def __init__(self, project_id: int, commit_hash: str):
         self.project_id = project_id
-        self.commit = commit
+        self.commit_hash = commit_hash
 
     def serialize(self) -> str:
         return pickle.dumps(self).encode("base64", "strict")
 
     @classmethod
-    def deserialize(cls, tar_id):
-        return cls(pickle.loads(tar_id.decode("base64", "strict")))
+    def deserialize(cls, ser_tar_metadata):
+        return cls(pickle.loads(ser_tar_metadata.decode("base64", "strict")))
 
     def __iter__(self) -> Iterable:
         yield self.project_id
-        yield self.commit
+        yield self.commit_hash
 
 
-def get_tar_path(tar_folder, commit) -> str:
-    return f"{tar_folder}/{commit}.tar.gz"
+def get_tar_path(tar_folder, commit_hash) -> str:
+    return f"{tar_folder}/{commit_hash}.tar.gz"
 
 
 def get_tar_folder(project_id) -> str:
@@ -36,15 +36,15 @@ def get_tar_folder(project_id) -> str:
     return f"{nfs_mount}{tar_dir}/{project_id}-{projects.id2name(project_id)}"
 
 
-def id2tar_path(tar_id) -> str:
-    project_id, commit = TarInfo.deserialize(tar_id)
+def serialized2tar_path(ser_tar_metadata) -> str:
+    project_id, commit_hash = TarMetadata.deserialize(ser_tar_metadata)
     tar_folder = get_tar_folder(project_id)
-    return get_tar_path(tar_folder, commit)
+    return get_tar_path(tar_folder, commit_hash)
 
 
-def tar_into(project_id: int, commit: str) -> str:
+def tar_into(project_id: int, commit_hash: str) -> str:
     tar_folder = get_tar_folder(project_id)
-    tar_path = get_tar_path(tar_folder, commit)
+    tar_path = get_tar_path(tar_folder, commit_hash)
     repo_path = repositories.get_repo_path(project_id)
 
     if not os.path.exists(repo_path):
@@ -53,7 +53,7 @@ def tar_into(project_id: int, commit: str) -> str:
         repo = repositories.update_repo(repo_path)
 
     main_branch = repo.active_branch.name
-    repo.git.checkout(commit)
+    repo.git.checkout(commit_hash)
 
     if not os.path.exists(tar_folder):
         os.makedirs(tar_folder)
@@ -63,4 +63,4 @@ def tar_into(project_id: int, commit: str) -> str:
                 filter=lambda tarinfo: None if ".git" in tarinfo.name else tarinfo)
 
     repo.git.checkout(main_branch)
-    return TarInfo(project_id, commit).serialize()
+    return TarMetadata(project_id, commit_hash).serialize()

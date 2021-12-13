@@ -1,1 +1,1 @@
-from .parsing import report2value, reports2values
+from .parsing import report2value, serialized2values
