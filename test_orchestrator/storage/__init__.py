@@ -1,1 +1,1 @@
-from . import configs, projects, repositories, results, tars, tests, commits
+from . import configs, projects, repos, results, tars, tests, commits

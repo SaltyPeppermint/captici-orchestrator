@@ -10,7 +10,7 @@ def id2hash(db: Session, commit_id: int) -> str:
             .one())
 
 
-def add_or_update(db: Session, project_id: int, commit_hash: str) -> int:
+def add_or_get(db: Session, project_id: int, commit_hash: str) -> int:
     existing_commit = (db
                        .query(models.Commit)
                        .filter(

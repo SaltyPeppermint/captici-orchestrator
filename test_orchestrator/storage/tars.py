@@ -7,7 +7,7 @@ from typing import Iterable
 from sqlalchemy.orm import Session
 from test_orchestrator.settings import config
 
-from . import projects, repositories
+from . import projects, repos
 
 
 class TarMetadata:
@@ -46,12 +46,12 @@ def serialized2tar_path(db: Session, ser_tar_metadata) -> str:
 def tar_into(db: Session, project_id: int, commit_hash: str) -> str:
     tar_folder = get_tar_folder(db, project_id)
     tar_path = get_tar_path(tar_folder, commit_hash)
-    repo_path = repositories.get_repo_path(db, project_id)
+    repo_path = repos.get_repo_path(db, project_id)
 
     if not os.path.exists(repo_path):
-        repo = repositories.clone_repo(db, project_id, repo_path)
+        repo = repos.clone_repo(db, project_id, repo_path)
     else:
-        repo = repositories.update_repo(repo_path)
+        repo = repos.update_repo(repo_path)
 
     main_branch = repo.active_branch.name
     repo.git.checkout(commit_hash)

@@ -36,10 +36,24 @@ def get_all_commits(db: Session, project_id: int) -> List[str]:
     return [str(commit.hexsha) for commit in commits]
 
 
-def get_filepaths_in_commit(
-        db: Session, project_id: int, commit_hash: str) -> List[str]:
+def get_filepaths(
+        db: Session,
+        project_id: int,
+        commit_hash: str) -> List[str]:
 
     repo = git.Repo(get_repo_path(db, project_id))
     changed_files = repo.git.show(commit_hash, pretty="", name_only=True)
     # im essentiall coding against the cli but it works
     return changed_files.split("\n")
+
+
+def is_parent_commit(
+        db: Session,
+        project_id: int,
+        left_commit_hash: str,
+        right_commit_hash: str) -> bool:
+
+    repo = git.Repo(get_repo_path(db, project_id))
+    right_commit = repo.commit(right_commit_hash)
+    parent_hashes = [parent.hexsha for parent in right_commit.parents]
+    return left_commit_hash in parent_hashes

@@ -78,9 +78,11 @@ class Test(Base):
     __tablename__ = "tests"
     id = Column(Integer, Sequence("test_id_seq"), primary_key=True)
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    whole_project_test = Column(Boolean(), nullable=False)
 
-    def __init__(self, project_id: int):
+    def __init__(self, project_id: int, whole_project_test: bool):
         self.project_id = project_id
+        self.whole_project_test = whole_project_test
 
     def __repr__(self):
         return f"<Test(id='{self.id}', project_id='{self.project_id}')>"
@@ -91,14 +93,21 @@ class Result(Base):
     id = Column(Integer, Sequence("result_id_seq"), primary_key=True)
     config_id = Column(Integer, ForeignKey("configs.id"), nullable=False)
     commit_id = Column(Integer, ForeignKey("commits.id"), nullable=False)
+    preceding_commit_id = Column(Integer, ForeignKey("commits.id"))
     content = Column(String(65536))
     finished = Column(Boolean(False), nullable=False)
 
-    def __init__(self, config_id: int, commit_id: int):
+    def __init__(
+            self,
+            config_id: int,
+            commit_id: int,
+            preceding_commit_id: int | None):
+
         self.config_id = config_id
         self.commit_id = commit_id
         self.content = ""
         self.finished = False
+        self.preceding_commit_id = preceding_commit_id
 
     def __repr__(self):
         return f"<Result(id='{self.id}', config_id='{self.config_id}', commit_id='{self.commit_id}', content='{self.content}', finished='{self.finished}')>"

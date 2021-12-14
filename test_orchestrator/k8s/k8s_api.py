@@ -53,7 +53,14 @@ def build_commit(db: Session, project_id: int, commit_hash: str) -> str:
     return image_name
 
 
-def run_test(db: Session, project_id: int, commit_hash: str, tester_env: str, config_id: int, result_id: int):
+def run_container_test(
+        db: Session,
+        project_id: int,
+        commit_hash: str,
+        tester_env: str,
+        config_id: int,
+        result_id: int) -> None:
+
     is_two_container = storage.projects.id2is_two_container(db, project_id)
     app_config_mount = storage.projects.id2config_path(db, project_id)
     project_name = storage.projects.id2name(db, project_id)

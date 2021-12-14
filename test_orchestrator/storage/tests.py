@@ -4,8 +4,8 @@ from test_orchestrator.api.response_bodies import TestResponse
 from .sql import models
 
 
-def add(db: Session, project_id: int) -> int:
-    test = models.Test(project_id)
+def add(db: Session, project_id: int, whole_project_test: bool) -> int:
+    test = models.Test(project_id, whole_project_test)
     db.add(test)
     db.commit()
     db.refresh(test)

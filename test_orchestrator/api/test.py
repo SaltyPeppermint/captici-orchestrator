@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from test_orchestrator import storage, testing
 from test_orchestrator.storage.sql.database import get_db
 
-from .request_bodies import TestRequest
+from .request_bodies import CommitTestRequest
 from .response_bodies import TestResponse
 
 router = APIRouter(
@@ -16,10 +16,24 @@ router = APIRouter(
 )
 
 
+@router.post("/project/{project_id}", status_code=status.HTTP_200_OK)
+async def request_commit_test(
+        project_id: int = Path(..., title="Project_id to test", gt=0),
+        testing_request: CommitTestRequest = Body(...),
+        db: Session = Depends(get_db)):
+
+    test_id = testing.commit.test_single_commit(
+        db,
+        project_id,
+        testing_request
+    )
+    return {"test_id": test_id}
+
+
 @router.post("/commit/{project_id}", status_code=status.HTTP_200_OK)
 async def request_commit_test(
         project_id: int = Path(..., title="Project_id to test", gt=0),
-        testing_request: TestRequest = Body(...),
+        testing_request: CommitTestRequest = Body(...),
         db: Session = Depends(get_db)):
 
     test_id = testing.commit.test_multiple_commits(

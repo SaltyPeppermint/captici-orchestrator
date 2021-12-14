@@ -33,15 +33,17 @@ def select(db: Session, project_id: int, n_configs: int) -> List[int]:
     result_ids = storage.projects.id2result_ids(db, project_id)
     # TODO Need to specify that this only always works against the current HEAD
 
-    head_filepaths = storage.repositories.get_filepaths_in_commit(
-        db, project_id, "HEAD")
+    head_filepaths = storage.repos.get_filepaths(db, project_id, "HEAD")
 
     id_by_distance = {}
     for result_id in result_ids:
         commit_id = storage.results.id2commit_id(db, result_ids)
         commit_hash = storage.commits.id2hash(db, commit_id)
-        commit_filepaths = storage.repositories.get_filepaths_in_commit(
-            db, project_id, commit_hash)
+        commit_filepaths = storage.repos.get_filepaths(
+            db,
+            project_id,
+            commit_hash
+        )
         distance = commit_distance(head_filepaths, commit_filepaths)
         id_by_distance[distance] = result_id
 

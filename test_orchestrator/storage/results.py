@@ -24,8 +24,29 @@ def id2config_id(db: Session, result_id: int) -> int:
             .one())
 
 
-def add_empty(db: Session, config_id: int, commit_id: int) -> int:
-    result = models.Result(config_id, commit_id)
+def update_preceding(
+        db: Session,
+        result_id: int,
+        new_preceding_commit_id: str) -> None:
+
+    result = (db
+              .query(models.Result)
+              .filter(models.Result.id == result_id)
+              .one_or_none())
+    result.preceding_commit_id = new_preceding_commit_id
+    result.finished = True
+    db.commit()
+    db.refresh(result)
+    return
+
+
+def add_empty(
+        db: Session,
+        config_id: int,
+        commit_id: int,
+        preceding_commit_id: int | None) -> int:
+
+    result = models.Result(config_id, commit_id, preceding_commit_id)
     db.add(result)
     db.commit()
     db.refresh(result)
@@ -38,6 +59,7 @@ def fill_content(db: Session, result_id: int, content: str):
               .filter(models.Result.id == result_id)
               .one_or_none())
     result.content = content
+    result.finished = True
     db.commit()
     db.refresh(result)
     return
