@@ -1,12 +1,14 @@
 import math
 from typing import List
-
 from sqlalchemy.orm import Session
+
 from test_orchestrator.storage import repositories
 
 
 def commits_between(
-        all_commit_hashs: List[str], first_commit_hash: str, last_commit_hash: str) -> List[str]:
+        all_commit_hashs: List[str],
+        first_commit_hash: str,
+        last_commit_hash: str) -> List[str]:
     ix = iy = 0
     for i, v in enumerate(all_commit_hashs):
         if v == first_commit_hash:
@@ -29,7 +31,12 @@ def uniform_select(commit_hashs: List[str], n_commits: int) -> List[str]:
 
 
 def select_commits(
-        db: Session, project_id: int, first_commit_hash: str, last_commit_hash: str, n_commits: int) -> List[str]:
+        db: Session,
+        project_id: int,
+        first_commit_hash: str,
+        last_commit_hash: str,
+        n_commits: int) -> List[str]:
+
     all_commit_hashs = repositories.get_all_commits(db, project_id)
     commits_hashs_in_range = commits_between(
         all_commit_hashs, first_commit_hash, last_commit_hash)

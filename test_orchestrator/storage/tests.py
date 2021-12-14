@@ -13,6 +13,14 @@ def add(db: Session, project_id: int) -> int:
     return test.id
 
 
+def add_result_to_test(db: Session, test_id: int, result_id: int) -> None:
+    result_in_test = models.ResultsInTest(test_id, result_id)
+    db.add(result_in_test)
+    db.commit()
+    db.refresh(result_in_test)
+    return
+
+
 def get_test_report(db: Session, project_id: int, test_id: int) -> TestResponse:
     test_report = TestResponse(individual_results={
         2: "AS", 3: "asdf"}, is_regression=True, regressing_config=[2, 3])

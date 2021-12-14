@@ -3,12 +3,11 @@ import pickle
 import tarfile
 import os
 from typing import Iterable
-
 from sqlalchemy.orm import Session
 
+from test_orchestrator.settings import config
 from . import repositories
 from . import projects
-from test_orchestrator.settings import config
 
 
 class TarMetadata:

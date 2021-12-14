@@ -1,12 +1,11 @@
-# APIRouter creates path operations for item module
 from fastapi import APIRouter, HTTPException, status
 from fastapi.exceptions import HTTPException
 from fastapi.params import Depends, Path
 from sqlalchemy.orm import Session
 
-from .request_bodies import RegisterRequest
 from test_orchestrator.storage import projects
 from test_orchestrator.storage.sql.database import get_db
+from .request_bodies import RegisterRequest
 
 router = APIRouter(
     prefix="/project",

@@ -6,8 +6,6 @@ from sqlalchemy.orm import Session
 
 from test_orchestrator import testing, storage
 from test_orchestrator.storage.sql.database import get_db
-
-# can't import the dict directly otherwise it won't be global any more
 from .request_bodies import TestRequest
 from .response_bodies import TestResponse
 

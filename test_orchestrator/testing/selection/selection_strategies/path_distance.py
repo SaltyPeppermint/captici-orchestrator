@@ -1,6 +1,5 @@
 import itertools
 from typing import List, Tuple
-
 from sqlalchemy.orm import Session
 
 from test_orchestrator import storage

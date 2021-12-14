@@ -1,17 +1,13 @@
-from typing import List, Tuple
 import git
+from typing import List
 from sqlalchemy.orm import Session
 
-from . import projects
 from test_orchestrator.settings import config
-
-
-def get_git_cred(db: Session, project_id: int) -> Tuple[str, str, str]:
-    return ("github.com/BurntSushi/ripgrep.git", "git", "")
+from . import projects
 
 
 def clone_repo(db: Session, project_id: int, repo_path: str) -> git.Repo:
-    git_url, git_user, git_pw = get_git_cred(db, project_id)
+    git_url, git_user, git_pw = projects.id2git_info(db, project_id)
     remote = f"https://{git_user}:{git_pw}@{git_url}"
     repo = git.Repo.clone_from(remote, repo_path)
     return repo
@@ -26,7 +22,8 @@ def update_repo(repo_path: str) -> git.Repo:
 def get_repo_path(db: Session, project_id: int) -> str:
     nfs_mount = config["NFS"]["mount"]
     repos_dir = config["Directories"]["repos_dir"]
-    return f"{nfs_mount}{repos_dir}/{project_id}-{projects.id2name(db, project_id)}"
+    project_name = projects.id2name(db, project_id)
+    return f"{nfs_mount}{repos_dir}/{project_id}-{project_name}"
 
 
 def get_all_commits(db: Session, project_id: int) -> List[str]:

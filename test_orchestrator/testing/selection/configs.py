@@ -1,14 +1,8 @@
-from enum import Enum
 from typing import List
-
 from sqlalchemy.orm import Session
 
+from test_orchestrator.api.request_bodies import SelectionStrategy
 from .selection_strategies import all, path_distance
-
-
-class SelectionStrategy(str, Enum):
-    ALL = "all"
-    PATH_DISTANCE = "path_distance"
 
 
 def select_configs(
