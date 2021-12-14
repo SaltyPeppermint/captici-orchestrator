@@ -1,7 +1,6 @@
-from typing import List
 from sqlalchemy.orm import Session
-
 from test_orchestrator.api.response_bodies import TestResponse
+
 from .sql import models
 
 

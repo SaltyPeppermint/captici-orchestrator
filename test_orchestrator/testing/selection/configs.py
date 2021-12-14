@@ -1,7 +1,8 @@
 from typing import List
+
+from api.request_bodies import SelectionStrategy
 from sqlalchemy.orm import Session
 
-from test_orchestrator.api.request_bodies import SelectionStrategy
 from .selection_strategies import all, path_distance
 
 

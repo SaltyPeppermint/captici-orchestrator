@@ -1,5 +1,5 @@
+import storage
 
-from test_orchestrator import storage
 from . import demo
 
 

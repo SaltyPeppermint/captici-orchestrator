@@ -1,12 +1,18 @@
 from typing import Dict
-from kubernetes.client import V1ConfigMap, V1Pod, V1ObjectMeta, V1PodSpec, V1Container, V1Volume, V1VolumeMount, V1SecretVolumeSource, V1KeyToPath, V1PodSecurityContext, V1EnvVar, V1EmptyDirVolumeSource, V1ConfigMapVolumeSource
 
+from kubernetes.client import (V1ConfigMap, V1ConfigMapVolumeSource,
+                               V1Container, V1EmptyDirVolumeSource, V1EnvVar,
+                               V1KeyToPath, V1ObjectMeta, V1Pod,
+                               V1PodSecurityContext, V1PodSpec,
+                               V1SecretVolumeSource, V1Volume, V1VolumeMount)
 from test_orchestrator.settings import config
 
 namespace = config["K8s"]["NAMESPACE"]
 adapter_dir = config["Directories"]["adapter_dir"]
 adapter_bin = config["Directories"]["adapter_bin"]
-download_string = f"'wget -O {adapter_dir + adapter_bin} http://test-orchestrator.svc.cluster.local/adapter && chmod +x {adapter_dir + adapter_bin}'"
+adapter_path = adapter_dir + adapter_bin
+adapter_url = "http://test-orchestrator.svc.cluster.local/adapter"
+sh_string = f"'wget -O {adapter_path} {adapter_url} && chmod +x {adapter_path}'"
 
 
 def adapter_init_container(adapter_vol):
@@ -14,7 +20,7 @@ def adapter_init_container(adapter_vol):
         name="adapter-injector",
         image="gcr.io/google-containers/busybox:latest",
         command=["sh -c"],
-        args=[download_string],
+        args=[sh_string],
         volume_mounts=[V1VolumeMount(
             name=adapter_vol, mount_path=adapter_dir)
         ]
@@ -117,7 +123,7 @@ def one_pod(
             containers=[V1Container(
                 name=f"{identifier}-combined",
                 image=image_name,
-                command=[adapter_dir + adapter_bin],
+                command=[adapter_path],
                 env=[
                     V1EnvVar(name="TESTER_CONFIG", value=tester_env),
                     V1EnvVar(name="REPORT_ID", value=report_id),
@@ -200,7 +206,7 @@ def two_pod(
                 V1Container(
                     name=f"{identifier}-tester",
                     image=tester_image_name,
-                    command=[adapter_dir + adapter_bin],
+                    command=[adapter_path],
                     env=[
                         V1EnvVar(name="TESTER_CONFIG", value=tester_env),
                         V1EnvVar(name="REPORT_ID", value=report_id),

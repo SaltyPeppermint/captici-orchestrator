@@ -1,8 +1,8 @@
 import math
 from typing import List
-from sqlalchemy.orm import Session
 
-from test_orchestrator.storage import repositories
+from sqlalchemy.orm import Session
+from storage import repositories
 
 
 def commits_between(

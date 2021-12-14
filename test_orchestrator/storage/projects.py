@@ -1,7 +1,8 @@
 from typing import List, Tuple
-from sqlalchemy.orm import Session
 
+from sqlalchemy.orm import Session
 from test_orchestrator.api.request_bodies import RegisterRequest
+
 from .sql import models
 
 

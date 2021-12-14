@@ -1,4 +1,4 @@
-from sqlalchemy import Sequence, Column, Boolean, Integer, String, ForeignKey
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, Sequence, String
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()

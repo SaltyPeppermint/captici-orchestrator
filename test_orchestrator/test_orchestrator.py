@@ -1,13 +1,10 @@
+from fastapi import FastAPI, status
+from fastapi.params import Body, Depends, Path
 from sqlalchemy.orm.session import Session
 from starlette.responses import FileResponse
-from fastapi import FastAPI, status
-from fastapi.exceptions import HTTPException
-from fastapi.params import Body, Depends, Path, Query
 
-from . import storage
-from . import api
+from . import api, storage
 from .storage.sql.database import get_db
-
 
 app = FastAPI()
 app.include_router(api.config.router)

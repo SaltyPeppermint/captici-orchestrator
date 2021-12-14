@@ -1,11 +1,9 @@
 # APIRouter creates path operations for item module
 from fastapi import APIRouter, status
-from fastapi.params import Depends, Path, Query, Body
+from fastapi.params import Body, Depends, Path, Query
 from sqlalchemy.orm import Session
-
 from test_orchestrator.storage import configs
 from test_orchestrator.storage.sql.database import get_db
-
 
 router = APIRouter(
     prefix="/config",

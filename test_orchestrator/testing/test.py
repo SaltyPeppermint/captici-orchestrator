@@ -1,10 +1,12 @@
 from typing import List
+
+import k8s
+import storage
+from api.request_bodies import TestRequest
 from sqlalchemy.orm import Session
 
-from test_orchestrator.api.request_bodies import TestRequest
-from test_orchestrator import k8s, storage
-from .selection.configs import select_configs
 from .selection.commits import select_commits
+from .selection.configs import select_configs
 
 
 def test_multiple_commits(

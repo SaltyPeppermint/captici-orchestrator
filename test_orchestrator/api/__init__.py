@@ -1,3 +1,1 @@
-from . import config
-from . import project
-from . import test
+from . import config, project, test

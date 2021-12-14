@@ -1,7 +1,7 @@
 from typing import List
-from sqlalchemy.orm import Session
 
-from test_orchestrator import storage
+import storage
+from sqlalchemy.orm import Session
 
 
 def select(db: Session, project_id: int, n_configs: int) -> List[int]:

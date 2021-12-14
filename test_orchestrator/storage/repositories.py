@@ -1,8 +1,9 @@
-import git
 from typing import List
-from sqlalchemy.orm import Session
 
+import git
+from sqlalchemy.orm import Session
 from test_orchestrator.settings import config
+
 from . import projects
 
 

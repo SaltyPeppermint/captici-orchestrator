@@ -3,9 +3,9 @@ from fastapi import APIRouter, HTTPException, status
 from fastapi.exceptions import HTTPException
 from fastapi.params import Body, Depends, Path, Query
 from sqlalchemy.orm import Session
-
-from test_orchestrator import testing, storage
+from test_orchestrator import storage, testing
 from test_orchestrator.storage.sql.database import get_db
+
 from .request_bodies import TestRequest
 from .response_bodies import TestResponse
 
@@ -23,7 +23,10 @@ async def request_commit_test(
         db: Session = Depends(get_db)):
 
     test_id = testing.commit.test_multiple_commits(
-        db, project_id, testing_request)
+        db,
+        project_id,
+        testing_request
+    )
     return {"test_id": test_id}
 
 
@@ -37,8 +40,10 @@ async def read_test_report(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Test not found")
     elif not storage.tests.id2finished(project_id, test_id):
-        raise HTTPException(status_code=status.HTTP_202_ACCEPTED,
-                            detail="Test not ready")
+        raise HTTPException(
+            status_code=status.HTTP_202_ACCEPTED,
+            detail="Test not ready"
+        )
     else:
         return storage.tests.get_test_report(project_id, test_id)
 

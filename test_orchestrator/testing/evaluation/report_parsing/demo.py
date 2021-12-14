@@ -1,4 +1,4 @@
-from junitparser import JUnitXml, Failure, Skipped, Error
+from junitparser import Error, Failure, JUnitXml, Skipped
 
 
 class JunitParsingError(ValueError):
