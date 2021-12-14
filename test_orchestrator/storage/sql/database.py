@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from test_orchestrator.settings import config
 
 from .models import Base
+
 # , Commit, Config, Project, Result, ResultsInTest, Test
 
 
