@@ -11,7 +11,7 @@ def id2result_ids(db: Session, config_id: int) -> List[int]:
             .all())
 
 
-def store(db: Session, project_id: int, content: str) -> int:
+def add(db: Session, project_id: int, content: str) -> int:
     config = models.Config(project_id, content)
     db.add(config)
     db.commit()

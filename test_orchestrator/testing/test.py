@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from test_orchestrator.api.request_bodies import TestRequest
 from test_orchestrator import k8s
 from test_orchestrator import storage
-from . import commits, configs
+from .selection import commits, configs
 
 
 def test_multiple_commits(db: Session, project_id: int, testing_request: TestRequest) -> int:

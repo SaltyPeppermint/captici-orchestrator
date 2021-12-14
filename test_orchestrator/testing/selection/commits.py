@@ -4,15 +4,6 @@ from typing import List
 from sqlalchemy.orm import Session
 from test_orchestrator.storage import repositories
 
-from test_orchestrator.testing.test import SelectionStrategy
-
-
-def str2strategy(strategy_as_string: str) -> SelectionStrategy:
-    if(strategy_as_string) == "all":
-        return SelectionStrategy.ALL
-    if(strategy_as_string) == "path_distance":
-        return SelectionStrategy.PATH_DISTANCE
-
 
 def commits_between(
         all_commit_hashs: List[str], first_commit_hash: str, last_commit_hash: str) -> List[str]:

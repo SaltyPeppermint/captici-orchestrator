@@ -4,9 +4,9 @@ from fastapi import FastAPI, status
 from fastapi.exceptions import HTTPException
 from fastapi.params import Body, Depends, Path, Query
 
-from test_orchestrator import storage
-from test_orchestrator import api
-from test_orchestrator.storage.sql.database import get_db
+from . import storage
+from . import api
+from .storage.sql.database import get_db
 
 
 app = FastAPI()

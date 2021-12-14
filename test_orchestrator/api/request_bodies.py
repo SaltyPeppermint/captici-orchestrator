@@ -1,7 +1,7 @@
 from typing import Optional
 from pydantic import BaseModel, Field
 from pydantic.networks import EmailStr, HttpUrl
-from test_orchestrator.testing.configs import SelectionStrategy
+from test_orchestrator.testing.selection.configs import SelectionStrategy
 
 
 class TestRequest(BaseModel):

@@ -22,7 +22,7 @@ async def add_project(
                            description="Config as a string. Max length of 4096 characters.", max_length=65536),
         db: Session = Depends(get_db)):
 
-    config_id = configs.store(db, project_id, config)
+    config_id = configs.add(db, project_id, config)
     return {"config_id": config_id}
 
 
