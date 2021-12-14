@@ -23,10 +23,7 @@ async def request_commit_test(
         db: Session = Depends(get_db)):
 
     test_id = testing.commit.test_single_commit(
-        db,
-        project_id,
-        testing_request
-    )
+        db, project_id, testing_request)
     return {"test_id": test_id}
 
 
@@ -37,10 +34,7 @@ async def request_commit_test(
         db: Session = Depends(get_db)):
 
     test_id = testing.commit.test_multiple_commits(
-        db,
-        project_id,
-        testing_request
-    )
+        db, project_id, testing_request)
     return {"test_id": test_id}
 
 

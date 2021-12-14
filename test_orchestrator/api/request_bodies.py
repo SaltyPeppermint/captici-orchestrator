@@ -43,7 +43,7 @@ class RegisterRequest(BaseModel):
                              description="Mount point of the configuration file.")
     two_container: bool = Field(False, description="Defines container setup.")
 
-    tester_container: Optional[str] = Field(None,
-                                            description="Optional additional testing container in case of two container setup.")
+    tester_image: Optional[str] = Field(None,
+                                        description="Optional additional testing container in case of two container setup.")
     email: Optional[EmailStr] = Field(None,
                                       description="Email associated with the project")

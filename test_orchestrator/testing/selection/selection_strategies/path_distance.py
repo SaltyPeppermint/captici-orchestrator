@@ -40,10 +40,7 @@ def select(db: Session, project_id: int, n_configs: int) -> List[int]:
         commit_id = storage.results.id2commit_id(db, result_ids)
         commit_hash = storage.commits.id2hash(db, commit_id)
         commit_filepaths = storage.repos.get_filepaths(
-            db,
-            project_id,
-            commit_hash
-        )
+            db, project_id, commit_hash)
         distance = commit_distance(head_filepaths, commit_filepaths)
         id_by_distance[distance] = result_id
 

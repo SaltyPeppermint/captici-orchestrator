@@ -54,7 +54,6 @@ def build_pod(build_name: str, image_name: str, tar_path: str) -> V1Pod:
                 args=[f"--context=tar://{context_dir}/context.tar.gz", f"--destination={image_name}",
                       "--cache=True"],
                 volume_mounts=kaniko_mounts(secret_vol, tar_vol, context_dir)
-
             )],
             volumes=kaniko_volumes(secret_vol, tar_vol),
             restart_policy="Never",
@@ -129,18 +128,10 @@ def one_pod(
                     V1EnvVar(name="REPORT_ID", value=report_id),
                 ],
                 volume_mounts=one_pod_mounts(
-                    app_config_path,
-                    app_config_vol,
-                    adapter_vol,
-                    report_vol
-                )
+                    app_config_path, app_config_vol, adapter_vol, report_vol)
             )],
             volumes=one_pod_volumes(
-                app_config_map_name,
-                app_config_vol,
-                adapter_vol,
-                report_vol
-            ),
+                app_config_map_name, app_config_vol, adapter_vol, report_vol),
             restart_policy="Never",
             security_context=V1PodSecurityContext(
                 fs_group=450
@@ -199,9 +190,7 @@ def two_pod(
                     name=f"{identifier}-app",
                     image=app_image_name,
                     volume_mounts=two_pod_app_mounts(
-                        app_config_path,
-                        app_config_vol
-                    )
+                        app_config_path, app_config_vol)
                 ),
                 V1Container(
                     name=f"{identifier}-tester",
@@ -212,9 +201,7 @@ def two_pod(
                         V1EnvVar(name="REPORT_ID", value=report_id),
                     ],
                     volume_mounts=two_pod_tester_mounts(
-                        adapter_vol,
-                        report_vol
-                    )
+                        adapter_vol, report_vol)
                 )
             ],
             volumes=two_pod_volumes(

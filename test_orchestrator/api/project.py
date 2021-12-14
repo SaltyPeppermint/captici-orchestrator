@@ -15,7 +15,10 @@ router = APIRouter(
 
 
 @router.put("/register", status_code=status.HTTP_200_OK)
-async def register_project(register_req: RegisterRequest, db: Session = Depends(get_db)):
+async def register_project(
+        register_req: RegisterRequest,
+        db: Session = Depends(get_db)):
+
     project_id = projects.add(db, register_req)
     return {"project_id": project_id}
 

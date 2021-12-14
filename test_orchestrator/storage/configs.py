@@ -1,15 +1,16 @@
 from typing import List
 
 from sqlalchemy.orm import Session
+from sqlalchemy.sql.expression import select
 
 from .sql import models
 
 
 def id2result_ids(db: Session, config_id: int) -> List[int]:
-    return (db
-            .query(models.Result.id)
-            .filter(models.Result.config_id == config_id)
-            .all())
+    stmt = (select(models.Result.id)
+            .where(models.Result.config_id == config_id))
+    with_duplicates = db.execute(stmt).scalars().all()
+    return list(set(with_duplicates))
 
 
 def add(db: Session, project_id: int, content: str) -> int:
@@ -21,7 +22,6 @@ def add(db: Session, project_id: int, content: str) -> int:
 
 
 def id2content(db: Session, config_id: int) -> str:
-    return (db
-            .query(models.Config.content)
-            .filter(models.Config.id == config_id)
-            .one())
+    stmt = (select(models.Config.content)
+            .where(models.Config.id == config_id))
+    return db.execute(stmt).scalars().one()

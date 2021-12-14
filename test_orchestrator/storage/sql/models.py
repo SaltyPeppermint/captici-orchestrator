@@ -15,7 +15,7 @@ class Project(Base):
     main_branch = Column(String(256), nullable=False)
     config_path = Column(String(256), nullable=False)
     two_container = Column(Boolean(), nullable=False)
-    tester_container = Column(String(256))
+    tester_image = Column(String(256))
     email = Column(String(256))
 
     def __init__(
@@ -28,7 +28,7 @@ class Project(Base):
             main_branch: str,
             config_path: str,
             two_container: bool,
-            tester_container: str,
+            tester_image: str,
             email: str):
 
         self.name = name
@@ -39,11 +39,11 @@ class Project(Base):
         self.main_branch = main_branch
         self.config_path = config_path
         self.two_container = two_container
-        self.tester_container = tester_container
+        self.tester_image = tester_image
         self.email = email
 
     def __repr__(self):
-        return f"<Project(id='{self.id}', name='{self.name}', tester_command='{self.tester_command}', repo_url='{self.repo_url}', git_user='{self.git_user}', main_branch='{self.main_branch}', auth_token='{self.auth_token}', config_path='{self.config_path}'', two_container='{self.two_container}', tester_container='{self.tester_container}', email='{self.email}')>"
+        return f"<Project(id='{self.id}', name='{self.name}', tester_command='{self.tester_command}', repo_url='{self.repo_url}', git_user='{self.git_user}', main_branch='{self.main_branch}', auth_token='{self.auth_token}', config_path='{self.config_path}'', two_container='{self.two_container}', tester_image='{self.tester_image}', email='{self.email}')>"
 
 
 class Commit(Base):
@@ -94,20 +94,25 @@ class Result(Base):
     config_id = Column(Integer, ForeignKey("configs.id"), nullable=False)
     commit_id = Column(Integer, ForeignKey("commits.id"), nullable=False)
     preceding_commit_id = Column(Integer, ForeignKey("commits.id"))
+    following_commit_id = Column(Integer, ForeignKey("commits.id"))
     content = Column(String(65536))
     finished = Column(Boolean(False), nullable=False)
+    revelead_cdpb = Column(Boolean(False), nullable=False)
 
     def __init__(
             self,
             config_id: int,
             commit_id: int,
-            preceding_commit_id: int | None):
+            preceding_commit_id: int | None,
+            following_commit_id: int | None):
 
         self.config_id = config_id
         self.commit_id = commit_id
         self.content = ""
         self.finished = False
+        self.revealed_bug = False
         self.preceding_commit_id = preceding_commit_id
+        self.following_commit_id = following_commit_id
 
     def __repr__(self):
         return f"<Result(id='{self.id}', config_id='{self.config_id}', commit_id='{self.commit_id}', content='{self.content}', finished='{self.finished}')>"

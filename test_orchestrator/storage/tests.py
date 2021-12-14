@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.sql.expression import select
 from test_orchestrator.api.response_bodies import TestResponse
 
 from .sql import models
@@ -28,20 +29,17 @@ def get_test_report(db: Session, project_id: int, test_id: int) -> TestResponse:
 
 
 def id2exists(db: Session, project_id: int, test_id: int) -> bool:
-    test = (db
-            .query(models.Test)
-            .filter(models.Test.id == test_id)
-            .one_or_none())
-    return test is not None
+    stmt = (select(models.Test)
+            .where(models.Test.id == test_id))
+    result = db.execute(stmt).scalars().one_or_none()
+    return result is not None
 
 
 def id2finished(db: Session, project_id: int, test_id: int) -> bool:
-    results_finished = (db
-                        .query(models.Result.finished)
-                        .join(
-                            models.ResultsInTest,
-                            models.ResultsInTest.result_id == models.Result.id
-                        )
-                        .filter(models.ResultsInTest.test_id == test_id)
-                        .all())
+    j = (models.Result
+         .join(models.ResultsInTest,
+               models.ResultsInTest.result_id == models.Result.id))
+    stmt = (select(models.Result.finished)
+            .where(models.ResultsInTest.test_id == test_id))
+    results_finished = db.execute(stmt).scalars().all
     return all(results_finished)
