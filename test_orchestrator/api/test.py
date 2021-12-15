@@ -16,9 +16,9 @@ router = APIRouter(
 )
 
 
-@router.post("/project/{project_id}", status_code=status.HTTP_200_OK)
+@router.post("/project", status_code=status.HTTP_200_OK)
 async def request_commit_test(
-        project_id: int = Path(..., title="Project_id to test", gt=0),
+        project_id: int = Query(..., title="Project_id to test", gt=0),
         testing_request: CommitTestRequest = Body(...),
         db: Session = Depends(get_db)):
 
@@ -27,9 +27,9 @@ async def request_commit_test(
     return {"test_id": test_id}
 
 
-@router.post("/commit/{project_id}", status_code=status.HTTP_200_OK)
+@router.post("/commit", status_code=status.HTTP_200_OK)
 async def request_commit_test(
-        project_id: int = Path(..., title="Project_id to test", gt=0),
+        project_id: int = Query(..., title="Project_id to test", gt=0),
         testing_request: CommitTestRequest = Body(...),
         db: Session = Depends(get_db)):
 
@@ -38,22 +38,21 @@ async def request_commit_test(
     return {"test_id": test_id}
 
 
-@router.get("/commit/{project_id}", response_model=TestResponse, status_code=status.HTTP_200_OK)
+@router.get("/commit", response_model=TestResponse, status_code=status.HTTP_200_OK)
 async def read_test_report(
-        project_id: int = Path(..., title="Id of the tested project", gt=0),
         test_id: int = Query(..., title="(Id of the test", gt=0),
         db: Session = Depends(get_db)):
 
-    if not storage.tests.id2exists(db, project_id, test_id):
+    if not storage.tests.id2exists(db, test_id):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Test not found")
-    elif not storage.tests.id2finished(project_id, test_id):
+    elif not storage.tests.id2finished(db, test_id):
         raise HTTPException(
             status_code=status.HTTP_202_ACCEPTED,
             detail="Test not ready"
         )
     else:
-        return storage.tests.get_test_report(project_id, test_id)
+        return storage.tests.get_test_report(test_id)
 
 
 # @router.post("/project/{project_id}", status_code = status.HTTP_200_OK)

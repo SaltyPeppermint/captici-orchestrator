@@ -104,11 +104,11 @@ def test_commit(
     project_name = storage.projects.id2name(db, project_id)
     tester_env = storage.projects.id2tester_command(db, project_id)
 
-    k8s.build_commit(db, project_name, commit_hash)
+    app_image_name = k8s.build_commit(db, project_name, commit_hash)
     for config_id in config_ids:
         result_id = storage.results.add_empty(
             db, config_id, commit_id, preceding_commit_id, following_commit_id)
         storage.tests.add_result_to_test(db, test_id, result_id)
-        k8s.run_container_test(
-            db, project_id, commit_hash, tester_env, config_id, result_id)
+        k8s.run_container_test(db, project_id,
+                               tester_env, config_id, result_id, app_image_name)
     return

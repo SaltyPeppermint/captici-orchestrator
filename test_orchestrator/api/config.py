@@ -12,10 +12,10 @@ router = APIRouter(
 )
 
 
-@router.put("/add/{project_id}", status_code=status.HTTP_200_OK)
+@router.put("/add", status_code=status.HTTP_200_OK)
 async def add_project(
-        project_id: int = Path(...,
-                               title="Id of the project to add config to", gt=0),
+        project_id: int = Query(...,
+                                title="Id of the project to add config to", gt=0),
         config: str = Body(...,
                            description="Config as a string. Max length of 4096 characters.", max_length=65536),
         db: Session = Depends(get_db)):
@@ -24,10 +24,8 @@ async def add_project(
     return {"config_id": config_id}
 
 
-@router.get("/get/{project_id}", status_code=status.HTTP_200_OK)
+@router.get("/get", status_code=status.HTTP_200_OK)
 async def get_config_content(
-        project_id: int = Path(...,
-                               title="Id of the project to get config from", gt=0),
         config_id: int = Query(..., title="Id of the config to get", gt=0),
         db: Session = Depends(get_db)):
 
@@ -35,9 +33,9 @@ async def get_config_content(
     return {"config": config}
 
 
-@router.get("/get_all/{project_id}", status_code=status.HTTP_200_OK)
+@router.get("/get_all", status_code=status.HTTP_200_OK)
 async def register_project(
-        project_id: int = Path(..., title="Id of the project to test", gt=0),
+        project_id: int = Query(..., title="Id of the project to test", gt=0),
         db: Session = Depends(get_db)):
 
     config_ids = storage.projects.id2config_ids(db, project_id)

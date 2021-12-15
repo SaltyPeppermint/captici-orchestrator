@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
 from fastapi.exceptions import HTTPException
-from fastapi.params import Depends, Path
+from fastapi.params import Depends, Path, Query
 from sqlalchemy.orm import Session
 from test_orchestrator.storage import projects
 from test_orchestrator.storage.sql.database import get_db
@@ -23,9 +23,11 @@ async def register_project(
     return {"project_id": project_id}
 
 
-@router.delete("/delete/{project_id}", status_code=status.HTTP_200_OK)
+@router.delete("/delete", status_code=status.HTTP_200_OK)
 async def delete_project(
-        project_id: int = Path(..., title="Id of the project to delete", gt=0), db: Session = Depends(get_db)):
+        project_id: int = Query(...,
+                                title="Id of the project to delete", gt=0),
+        db: Session = Depends(get_db)):
 
     if projects.delete(db, project_id):
         return

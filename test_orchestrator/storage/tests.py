@@ -21,25 +21,25 @@ def add_result_to_test(db: Session, test_id: int, result_id: int) -> None:
     return
 
 
-def get_test_report(db: Session, project_id: int, test_id: int) -> TestResponse:
+def get_test_report(db: Session, test_id: int) -> TestResponse:
     test_report = TestResponse(individual_results={
         2: "AS", 3: "asdf"}, is_regression=True, regressing_config=[2, 3])
     # TODO IMPLEMENT
     return test_report
 
 
-def id2exists(db: Session, project_id: int, test_id: int) -> bool:
+def id2exists(db: Session, test_id: int) -> bool:
     stmt = (select(models.Test)
             .where(models.Test.id == test_id))
     result = db.execute(stmt).scalars().one_or_none()
     return result is not None
 
 
-def id2finished(db: Session, project_id: int, test_id: int) -> bool:
+def id2finished(db: Session, test_id: int) -> bool:
     j = (models.Result
          .join(models.ResultsInTest,
                models.ResultsInTest.result_id == models.Result.id))
-    stmt = (select(models.Result.finished)
+    stmt = (select(models.Result.finished).select_from(j)
             .where(models.ResultsInTest.test_id == test_id))
     results_finished = db.execute(stmt).scalars().all
     return all(results_finished)
