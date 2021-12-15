@@ -1,7 +1,8 @@
 from typing import List, Tuple
+import sqlalchemy
 
 from sqlalchemy.orm import Session
-from sqlalchemy.sql.expression import select, join
+from sqlalchemy.sql.expression import delete, select, join
 from test_orchestrator.api.request_bodies import RegisterRequest
 
 from .sql import models
@@ -24,8 +25,19 @@ def add(db: Session, req: RegisterRequest) -> int:
     return project.id
 
 
-def delete(db: Session, project_id: int) -> bool:
-    stmt = (delete(models.Project.name)
+def deleteById(db: Session, project_id: int) -> bool:
+    stmt = (select(models.Project)
+            .where(models.Project.id == project_id))
+    result = db.execute(stmt).scalars().one_or_none()
+    if result:
+        stmt = (select(models.Project)
+                .where(models.Project.id == project_id))
+        db.execute(stmt)
+        db.commit()
+    else:
+        raise sqlalchemy.exc.NoResultFound
+
+    stmt = (delete(models.Project)
             .where(models.Project.id == project_id))
     db.execute(stmt)
     db.commit()

@@ -12,7 +12,7 @@ router = APIRouter(
 )
 
 
-@router.put("/add", status_code=status.HTTP_200_OK)
+@router.post("/add", status_code=status.HTTP_200_OK)
 async def add_project(
         project_id: int = Query(...,
                                 title="Id of the project to add config to", gt=0),

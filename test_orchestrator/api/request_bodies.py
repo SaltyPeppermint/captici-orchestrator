@@ -11,13 +11,13 @@ class SelectionStrategy(str, Enum):
 
 
 class CommitTestRequest(BaseModel):
-    n_commits: int = Field(..., description="n commits to test", gt=0),
-    n_configs: int = Field(..., description="n configs to test", gt=0),
+    n_commits: int = Field(..., description="n commits to test", gt=0)
+    n_configs: int = Field(..., description="n configs to test", gt=0)
     commit_hash: str = Field(...,
                              description="SHA1 Hash of the first commit to test.",
-                             min_length=40, max_length=40, regex=r"[0-9A-Fa-f]+"),
-    selection_strategy: SelectionStrategy = Field(None,
-                                                  description="Testing Strategy. See Enum for allowed values"),
+                             min_length=40, max_length=40, regex=r"[0-9A-Fa-f]+")
+    selection_strategy: SelectionStrategy = Field(...,
+                                                  description="Testing Strategy. See Enum for allowed values")
 
 
 class ProjectTestRequest(BaseModel):

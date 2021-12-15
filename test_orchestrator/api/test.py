@@ -38,7 +38,7 @@ async def request_commit_test(
     return {"test_id": test_id}
 
 
-@router.get("/commit", response_model=TestResponse, status_code=status.HTTP_200_OK)
+@router.get("/report", response_model=TestResponse, status_code=status.HTTP_200_OK)
 async def read_test_report(
         test_id: int = Query(..., title="(Id of the test", gt=0),
         db: Session = Depends(get_db)):

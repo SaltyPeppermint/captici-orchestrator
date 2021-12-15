@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 from fastapi.exceptions import HTTPException
 from fastapi.params import Depends, Path, Query
+import sqlalchemy
 from sqlalchemy.orm import Session
 from test_orchestrator.storage import projects
 from test_orchestrator.storage.sql.database import get_db
@@ -14,7 +15,7 @@ router = APIRouter(
 )
 
 
-@router.put("/register", status_code=status.HTTP_200_OK)
+@router.post("/register", status_code=status.HTTP_200_OK)
 async def register_project(
         register_req: RegisterRequest,
         db: Session = Depends(get_db)):
@@ -29,8 +30,10 @@ async def delete_project(
                                 title="Id of the project to delete", gt=0),
         db: Session = Depends(get_db)):
 
-    if projects.delete(db, project_id):
+    try:
+        projects.deleteById(db, project_id)
         return
-    else:
+    except:
+        sqlalchemy.exc.NoResultFound
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
