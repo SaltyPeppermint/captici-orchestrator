@@ -56,12 +56,11 @@ def build_commit(db: Session, project_id: int, commit_hash: str) -> str:
 def run_container_test(
         db: Session,
         project_id: int,
-        tester_env: str,
-        config_id: int,
-        result_id: int,
+        test_id: int,
         app_image_name: str) -> None:
 
-    identifier = f"test-{result_id}"
+    identifier = f"test-{test_id}"
+    config_id = storage.tests.id2config_id(db, test_id)
     config_mount = storage.projects.id2config_path(db, project_id)
 
     config_map_name = f"config-{identifier}"
@@ -69,15 +68,16 @@ def run_container_test(
     config_map_manifest = templates.config_map(
         config_map_name, config_content)
 
+    tester_command = storage.projects.id2tester_command(db, project_id)
     is_two_container = storage.projects.id2is_two_container(db, project_id)
     if(is_two_container):
         tester_image_name = storage.projects.id2tester_image(
             db, project_id)
         pod_manifest = templates.two_pod(
-            identifier, app_image_name, tester_image_name, config_map_name, config_mount, tester_env, result_id)
+            identifier, app_image_name, tester_image_name, config_map_name, config_mount, tester_command, test_id)
     else:
         pod_manifest = templates.one_pod(
-            identifier, app_image_name, config_map_name, config_mount, tester_env, result_id)
+            identifier, app_image_name, config_map_name, config_mount, tester_command, test_id)
 
     execute_manifest(config_map_manifest)
     execute_manifest(pod_manifest)

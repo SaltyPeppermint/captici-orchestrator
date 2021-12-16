@@ -6,9 +6,9 @@ from sqlalchemy.sql.expression import select
 from .sql import models
 
 
-def id2result_ids(db: Session, config_id: int) -> List[int]:
-    stmt = (select(models.Result.id)
-            .where(models.Result.config_id == config_id))
+def id2test_ids(db: Session, config_id: int) -> List[int]:
+    stmt = (select(models.Test.id)
+            .where(models.Test.config_id == config_id))
     with_duplicates = db.execute(stmt).scalars().all()
     return list(set(with_duplicates))
 

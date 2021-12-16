@@ -74,9 +74,9 @@ class Config(Base):
         return f"<Config(id='{self.id}', project_id='{self.project_id}', content='{self.content}')>"
 
 
-class Test(Base):
-    __tablename__ = "tests"
-    id = Column(Integer, Sequence("test_id_seq"), primary_key=True)
+class TestGroup(Base):
+    __tablename__ = "test_groups"
+    id = Column(Integer, Sequence("test_groups_id_seq"), primary_key=True)
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
     whole_project_test = Column(Boolean(), nullable=False)
 
@@ -85,17 +85,17 @@ class Test(Base):
         self.whole_project_test = whole_project_test
 
     def __repr__(self):
-        return f"<Test(id='{self.id}', project_id='{self.project_id}')>"
+        return f"<Test Group(id='{self.id}', project_id='{self.project_id}')>"
 
 
-class Result(Base):
-    __tablename__ = "results"
-    id = Column(Integer, Sequence("result_id_seq"), primary_key=True)
+class Test(Base):
+    __tablename__ = "tests"
+    id = Column(Integer, Sequence("tests_id_seq"), primary_key=True)
     config_id = Column(Integer, ForeignKey("configs.id"), nullable=False)
     commit_id = Column(Integer, ForeignKey("commits.id"), nullable=False)
-    preceding_commit_id = Column(Integer, ForeignKey("commits.id"))
+    preceding_test_id = Column(Integer, ForeignKey("commits.id"))
     following_commit_id = Column(Integer, ForeignKey("commits.id"))
-    content = Column(String(65536))
+    result = Column(String(65536))
     finished = Column(Boolean(False), nullable=False)
     revelead_cdpb = Column(Boolean(False), nullable=False)
 
@@ -108,24 +108,25 @@ class Result(Base):
 
         self.config_id = config_id
         self.commit_id = commit_id
-        self.content = ""
+        self.result = None
         self.finished = False
         self.revealed_bug = False
         self.preceding_commit_id = preceding_commit_id
         self.following_commit_id = following_commit_id
 
     def __repr__(self):
-        return f"<Result(id='{self.id}', config_id='{self.config_id}', commit_id='{self.commit_id}', content='{self.content}', finished='{self.finished}')>"
+        return f"<Test(id='{self.id}', config_id='{self.config_id}', commit_id='{self.commit_id}', content='{self.result}', finished='{self.finished}'', preceding_commit_id='{self.preceding_commit_id}'', following_commit_id='{self.following_commit_id}')>"
 
 
-class ResultsInTest(Base):
-    __tablename__ = 'results_in_tests'
+class TestInTestGroup(Base):
+    __tablename__ = 'test_in_test_group'
+    test_group_id = Column(Integer, ForeignKey(
+        "test_groups.id"), primary_key=True)
     test_id = Column(Integer, ForeignKey("tests.id"), primary_key=True)
-    result_id = Column(Integer, ForeignKey("results.id"), primary_key=True)
 
-    def __init__(self, test_id: int, result_id: int):
+    def __init__(self, test_group_id: int, test_id: int):
+        self.test_group_id = test_group_id
         self.test_id = test_id
-        self.result_id = result_id
 
     def __repr__(self):
-        return f"<test_id(id='{self.test_id}', result_id='{self.result_id}'>"
+        return f"<test_group_id(id='{self.test_group_id}', test_id='{self.test_id}'>"

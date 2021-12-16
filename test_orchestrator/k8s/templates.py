@@ -96,7 +96,7 @@ def one_pod(
         image_name: str,
         config_map_name: str,
         config_path: str,
-        tester_env: str,
+        tester_command: str,
         report_id: str) -> V1Pod:
 
     config_vol = f"config-{identifier}"
@@ -111,7 +111,7 @@ def one_pod(
                 image=image_name,
                 command=[adapter_path],
                 env=[
-                    V1EnvVar(name="TESTER_CONFIG", value=tester_env),
+                    V1EnvVar(name="TESTER_CONFIG", value=tester_command),
                     V1EnvVar(name="REPORT_ID", value=report_id),
                 ],
                 volume_mounts=[
@@ -151,7 +151,7 @@ def two_pod(
         tester_image_name: str,
         config_map_name: str,
         config_path: str,
-        tester_env: str,
+        tester_command: str,
         report_id: str) -> V1Pod:
 
     config_vol = f"config-{identifier}"
@@ -175,7 +175,7 @@ def two_pod(
                     image=tester_image_name,
                     command=[adapter_path],
                     env=[
-                        V1EnvVar(name="TESTER_CONFIG", value=tester_env),
+                        V1EnvVar(name="TESTER_CONFIG", value=tester_command),
                         V1EnvVar(name="REPORT_ID", value=report_id),
                     ],
                     volume_mounts=V1VolumeMount(

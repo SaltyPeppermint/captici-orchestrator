@@ -20,12 +20,12 @@ async def get_adapter():
 
 @app.post("/results", status_code=status.HTTP_200_OK)
 async def add_result(
-    result_id: int = Query(...,
-                           title="Id of the result to add", gt=0),
+    test_id: int = Query(...,
+                         title="Id of the test to add to", gt=0),
     content: str = Body(...,
-                        description="Content of the result as string. Max length of 65536 characters.",
+                        description="Content of the test as string. Max length of 65536 characters.",
                         max_length=65536)):
-    storage.results.fill_content(result_id, content)
+    storage.tests.add_result(test_id, content)
     return
 
 

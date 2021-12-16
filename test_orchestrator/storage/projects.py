@@ -28,8 +28,8 @@ def add(db: Session, req: RegisterRequest) -> int:
 def deleteById(db: Session, project_id: int) -> bool:
     stmt = (select(models.Project)
             .where(models.Project.id == project_id))
-    result = db.execute(stmt).scalars().one_or_none()
-    if result:
+    existing_project = db.execute(stmt).scalars().one_or_none()
+    if existing_project:
         stmt = (select(models.Project)
                 .where(models.Project.id == project_id))
         db.execute(stmt)
@@ -85,11 +85,11 @@ def id2git_info(db: Session, project_id: int) -> Tuple[str, str, str]:
     # return ("github.com/BurntSushi/ripgrep.git", "git", "")
 
 
-def id2result_ids(db: Session, project_id: int) -> List[int]:
-    # SELECT config, commit FROM results JOIN commits where project_id = project_id
-    j = join(models.Commit, models.Result,
-             models.Commit.id == models.Result.commit_id)
-    stmt = (select(models.Result.config_id).select_from(j)
+def id2test_ids(db: Session, project_id: int) -> List[int]:
+    # SELECT config, commit FROM tests JOIN commits where project_id = project_id
+    j = join(models.Commit, models.Test,
+             models.Commit.id == models.Test.commit_id)
+    stmt = (select(models.Test.config_id).select_from(j)
             .where(models.Commit.project_id == project_id))
     with_duplicates = db.execute(stmt).scalars().all()
     return list(set(with_duplicates))

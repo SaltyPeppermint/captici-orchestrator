@@ -5,7 +5,7 @@ from test_orchestrator.settings import config
 
 from .models import Base
 
-# , Commit, Config, Project, Result, ResultsInTest, Test
+# , Commit, Config, Project, Test, TestinTestGroup, Test
 
 
 def init_db():

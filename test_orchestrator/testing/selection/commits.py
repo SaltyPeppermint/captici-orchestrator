@@ -2,7 +2,23 @@ import math
 from typing import List
 
 from sqlalchemy.orm import Session
-from storage import repos
+from test_orchestrator.storage import repos, commits
+
+
+def choose_middle(left_bounding_item, right_bounding_item, items):
+    ix = iy = 0
+    for i, v in enumerate(items):
+        if v == left_bounding_item:
+            ix = i
+        if v == right_bounding_item:
+            iy = i
+            break
+
+    items_in_window = items[ix:iy]
+    middle_item = items_in_window[len(items_in_window)//2]
+    # // is division without remainder, perfect here
+
+    return middle_item
 
 
 def uniform_choice(commit_hashs: List[str], n_commits: int) -> List[str]:
@@ -18,20 +34,15 @@ def uniform_choice(commit_hashs: List[str], n_commits: int) -> List[str]:
 def middle_select(
         db: Session,
         project_id: int,
-        left_commit_hash: str,
-        right_commit_hash: str) -> str:
-    all_commit_hashs = repos.get_all_commits(db, project_id)
-    ix = iy = 0
-    for i, v in enumerate(all_commit_hashs):
-        if v == left_commit_hash:
-            ix = i
-        if v == right_commit_hash:
-            iy = i
-            break
+        preceding_commit_id: str,
+        following_commit_id: str) -> str:
 
-    commits_in_window = all_commit_hashs[ix:iy]
-    # // is division without remainder, perfect here
-    return commits_in_window[len(commits_in_window)//2]
+    preceding_commit_hash = commits.id2hash(preceding_commit_id)
+    following_commit_hash = commits.id2hash(following_commit_id)
+    all_commit_hashs = repos.get_all_commits(db, project_id)
+    middle_item = choose_middle(
+        preceding_commit_hash, following_commit_hash, all_commit_hashs)
+    return middle_item
 
 
 def initial_sample_select(

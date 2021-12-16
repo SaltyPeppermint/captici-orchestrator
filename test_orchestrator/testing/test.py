@@ -13,11 +13,12 @@ def test_single_commit(
         db: Session,
         project_id: int,
         req: CommitTestRequest) -> int:
-    test_id = storage.tests.add(db, project_id, False)
+    test_id = storage.test_groups.add(db, project_id, False)
 
     config_ids_to_test = select_configs(
         db, project_id, req.n_configs, req.selection_strategy)
-    test_commit(db, project_id, test_id, req.commit_hash, config_ids_to_test)
+    test_multiple_configs(db, project_id, test_id,
+                          req.commit_hash, config_ids_to_test)
     return test_id
 
 
@@ -25,7 +26,7 @@ def test_whole_project(
         db: Session,
         project_id: int,
         req: ProjectTestRequest) -> int:
-    test_id = storage.tests.add(db, project_id, True)
+    test_id = storage.test_groups.add(db, project_id, True)
 
     commit_hashs = initial_sample_select(
         db, project_id, req.n_commits)
@@ -34,7 +35,7 @@ def test_whole_project(
     for i in range(0, len(commit_hashs)):
         previous_commit_id, following_commit_id = assign_commit_boundaries(
             db, project_id, commit_hashs, i)
-        test_commit(
+        test_multiple_configs(
             db, project_id, test_id, commit_hashs[i],            config_ids_to_test, previous_commit_id, following_commit_id)
     return test_id
 
@@ -63,52 +64,66 @@ def assign_commit_boundaries(
 def binary_search_testing(
         db: Session,
         project_id: int,
-        left_result_id: str,
-        right_result_id: str,
+        preceding_commit_id: int,
+        following_commit_id: int,
         config_id: int,
-        test_id: int) -> int:
-
-    left_commit_id = storage.results.id2commit_id(left_result_id)
-    right_commit_id = storage.results.id2commit_id(right_result_id)
-
-    left_hash = storage.commits.id2hash(left_commit_id)
-    right_hash = storage.commits.id2hash(right_commit_id)
+        test_group_id: int) -> int:
 
     is_parent = storage.repos.is_parent_commit(
-        db, project_id, left_hash, right_hash
+        db, project_id, preceding_commit_id, following_commit_id
     )
     if is_parent:
         # TODO LABEL RIGHT AS REGRESSION
         return
     else:
-        test_hash = middle_select(db, project_id, left_hash, right_hash)
-        middle_commit_id = storage.commits.add_or_get(
-            db, project_id, test_hash)
-        storage.results.update_preceding(db, right_commit_id, middle_commit_id)
-        storage.results.update_following(db, left_commit_id, middle_commit_id)
-        test_commit(
-            db, project_id, test_id, test_hash, [config_id], preceding_commit_id=left_commit_id, following_commit_id=right_commit_id)
-        return
+        preceding_hash = storage.commits.id2hash(preceding_commit_id)
+        following_hash = storage.commits.id2hash(following_commit_id)
+        test_hash = middle_select(
+            db, project_id, preceding_commit_id, following_commit_id)
+        test_single_config(
+            db, project_id, test_group_id, test_hash, config_id, preceding_commit_id, following_commit_id)
+    return
 
 
-def test_commit(
+def test_single_config(
         db: Session,
         project_id: int,
-        test_id: int,
+        test_group_id: int,
         commit_hash: str,
-        config_ids: List[str],
-        preceding_commit_id: int = None,
-        following_commit_id: int = None) -> int:
+        config_id: int,
+        preceding_commit_id: int,
+        following_commit_id: int) -> int:
 
     commit_id = storage.commits.add_or_get(db, project_id, commit_hash)
-    project_name = storage.projects.id2name(db, project_id)
-    tester_env = storage.projects.id2tester_command(db, project_id)
 
-    app_image_name = k8s.build_commit(db, project_name, commit_hash)
+    storage.tests.update_preceding(db, preceding_commit_id, commit_id)
+    storage.tests.update_following(db, following_commit_id, commit_id)
+
+    app_image_name = k8s.build_commit(db, project_id, commit_hash)
+    test_id = storage.tests.add_empty(
+        db, config_id, commit_id, preceding_commit_id, following_commit_id)
+
+    storage.test_groups.add_test_to_test_group(db, test_id, test_group_id)
+    k8s.run_container_test(db, project_id, test_id, app_image_name)
+    return
+
+
+def test_multiple_configs(
+        db: Session,
+        project_id: int,
+        test_group_id: int,
+        commit_hash: str,
+        config_ids: List[int],
+        preceding_commit_id: int,
+        following_commit_id: int) -> int:
+
+    commit_id = storage.commits.add_or_get(db, project_id, commit_hash)
+
+    app_image_name = k8s.build_commit(db, project_id, commit_hash)
     for config_id in config_ids:
-        result_id = storage.results.add_empty(
+        test_id = storage.tests.add_empty(
             db, config_id, commit_id, preceding_commit_id, following_commit_id)
-        storage.tests.add_result_to_test(db, test_id, result_id)
-        k8s.run_container_test(db, project_id,
-                               tester_env, config_id, result_id, app_image_name)
+
+        storage.test_groups.add_test_to_test_group(db, test_id, test_group_id)
+        k8s.run_container_test(db, project_id, test_id, app_image_name)
     return

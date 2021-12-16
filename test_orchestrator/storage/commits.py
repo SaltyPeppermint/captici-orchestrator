@@ -14,9 +14,9 @@ def add_or_get(db: Session, project_id: int, commit_hash: str) -> int:
     stmt = (select(models.Commit)
             .filter(models.Commit.project_id == project_id,
                     models.Commit.commit_hash == commit_hash))
-    result = db.execute(stmt).scalars().one_or_none()
-    if result:
-        return result.id
+    existing_commit = db.execute(stmt).scalars().one_or_none()
+    if existing_commit:
+        return existing_commit.id
     else:
         commit = models.Commit(project_id, commit_hash, False)
         db.add(commit)

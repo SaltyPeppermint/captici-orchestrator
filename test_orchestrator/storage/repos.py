@@ -4,7 +4,7 @@ import git
 from sqlalchemy.orm import Session
 from test_orchestrator.settings import config
 
-from . import projects
+from . import projects, commits
 
 
 def clone_repo(db: Session, project_id: int, repo_path: str) -> git.Repo:
@@ -46,8 +46,11 @@ def get_filepaths(db: Session, project_id: int, commit_hash: str) -> List[str]:
 def is_parent_commit(
         db: Session,
         project_id: int,
-        left_commit_hash: str,
-        right_commit_hash: str) -> bool:
+        left_commit_id: str,
+        right_commit_id: str) -> bool:
+
+    left_commit_hash = commits.id2hash(left_commit_id)
+    right_commit_hash = commits.id2hash(right_commit_id)
 
     repo = git.Repo(get_repo_path(db, project_id))
     right_commit = repo.commit(right_commit_hash)
