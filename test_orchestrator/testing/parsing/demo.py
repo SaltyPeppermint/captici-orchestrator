@@ -9,7 +9,7 @@ class JunitParsingWarning(UserWarning):
     pass
 
 
-def report2value(report: str) -> float:
+def result2value(report: str) -> float:
     junit = JUnitXml.fromstring(report)
     total_time = 0
     for suite in junit:

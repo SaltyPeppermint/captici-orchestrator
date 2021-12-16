@@ -1,16 +1,12 @@
+from typing import List, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import select, update
 
 from .sql import models
 
 
-def id2commit_id(db: Session, test_id: int) -> int:
-    stmt = select(models.Test.commit_id).where(models.Test.id == test_id)
-    return db.execute(stmt).scalars().one()
-
-
-def id2test_id(db: Session, test_id: int) -> int:
-    stmt = select(models.Test.result).where(models.Test.id == test_id)
+def id2commit_hash(db: Session, test_id: int) -> int:
+    stmt = select(models.Test.commit_hash).where(models.Test.id == test_id)
     return db.execute(stmt).scalars().one()
 
 
@@ -19,14 +15,61 @@ def id2config_id(db: Session, test_id: int) -> int:
     return db.execute(stmt).scalars().one()
 
 
+def id2result(db: Session, test_id: int) -> int:
+    stmt = select(models.Test.result).where(models.Test.id == test_id)
+    return db.execute(stmt).scalars().one()
+
+
+def id2preceding_commit_hash(db: Session, test_id: int) -> str | None:
+    stmt = (select(models.Test.preceding_commit_hash)
+            .where(models.Test.id == test_id))
+    return db.execute(stmt).scalars().one_or_none()
+
+
+def id2following_commit_hash(db: Session, test_id: int) -> str | None:
+    stmt = (select(models.Test.following_commit_hash)
+            .where(models.Test.id == test_id))
+    return db.execute(stmt).scalars().one_or_none()
+
+
+def id2project_id(db: Session, test_id: int) -> int:
+    stmt = select(models.Test.project_id).where(models.Test.id == test_id)
+    return db.execute(stmt).scalars().one()
+
+
+def config_id_and_hash2result(
+        db: Session,
+        config_id: int,
+        commit_hash: str) -> int:
+    stmt = (select(models.Test.result)
+            .where(models.Test.config_id == config_id)
+            .where(models.Test.commit_hash == commit_hash))
+    return db.execute(stmt).scalars().one()
+
+
+def config_id_and_hash2id(
+        db: Session,
+        config_id: int,
+        commit_hash: str) -> int:
+    stmt = (select(models.Test.id)
+            .where(models.Test.config_id == config_id)
+            .where(models.Test.commit_hash == commit_hash))
+    return db.execute(stmt).scalars().one()
+
+
+def project_id2test_ids(db: Session, project_id: int) -> List[int]:
+    stmt = (select(models.Test.id).where(models.Test.id == project_id))
+    return db.execute(stmt).scalars().all()
+
+
 def update_preceding(
         db: Session,
         test_id: int,
-        preceding_commit_id: str) -> None:
+        preceding_commit_hash: str) -> None:
 
     stmt = (update(models.Test)
             .where(models.Test.id == test_id)
-            .values(preceding_commit_id=preceding_commit_id, finished=True))
+            .values(preceding_commit_hash=preceding_commit_hash, finished=True))
     db.execute(stmt)
     db.commit()
     return
@@ -35,11 +78,11 @@ def update_preceding(
 def update_following(
         db: Session,
         test_id: int,
-        following_commit_id: str) -> None:
+        following_commit_hash: str) -> None:
 
     stmt = (update(models.Test)
             .where(models.Test.id == test_id)
-            .values(following_commit_id=following_commit_id, finished=True))
+            .values(following_commit_hash=following_commit_hash, finished=True))
     db.execute(stmt)
     db.commit()
     return
@@ -57,12 +100,12 @@ def mark_as_degradation(db: Session, test_id: int) -> None:
 def add_empty(
         db: Session,
         config_id: int,
-        commit_id: int,
-        preceding_commit_id: int | None,
-        following_commit_id: int | None) -> int:
+        commit_hash: int,
+        preceding_commit_hash: Optional[str],
+        following_commit_hash: Optional[str]) -> int:
 
-    test = models.Test(config_id, commit_id,
-                       preceding_commit_id, following_commit_id)
+    test = models.Test(config_id, commit_hash,
+                       preceding_commit_hash, following_commit_hash)
     db.add(test)
     db.commit()
     db.refresh(test)

@@ -1,8 +1,8 @@
 import itertools
-from typing import List
+from typing import List, Tuple
 
-import storage
 from sqlalchemy.orm import Session
+from test_orchestrator import storage
 
 
 def common_prefix_len(arr1: List[str], arr2: List[str]) -> int:
@@ -29,22 +29,21 @@ def commit_distance(
     return sum(path_distances) / len(path_distances)
 
 
-def select(db: Session, project_id: int, n_configs: int) -> List[int]:
-    test_ids = storage.projects.id2test_ids(db, project_id)
+def select(db: Session, project_id: int, n_configs: int) -> List[Tuple[str, int]]:
+    test_ids = storage.tests.project_id2ids(db, project_id)
     # TODO Need to specify that this only always works against the current HEAD
 
     head_filepaths = storage.repos.get_filepaths(db, project_id, "HEAD")
 
-    id_by_distance = {}
+    by_distance = {}
     for test_id in test_ids:
-        commit_id = storage.tests.id2commit_id(db, test_ids)
-        commit_hash = storage.commits.id2hash(db, commit_id)
+        commit_hash = storage.tests.id2commit_hash(db, test_ids)
         commit_filepaths = storage.repos.get_filepaths(
             db, project_id, commit_hash)
         distance = commit_distance(head_filepaths, commit_filepaths)
-        id_by_distance[distance] = test_id
+        by_distance[distance] = test_id
 
-    sorted_by_distance = dict(sorted(id_by_distance.items()))
+    sorted_by_distance = dict(sorted(by_distance.items()))
 
     top_tests = sorted_by_distance.values()[:n_configs]
-    return [storage.tests.id2config_id(test) for test in top_tests]
+    return top_tests

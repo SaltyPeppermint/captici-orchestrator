@@ -1,3 +1,4 @@
+from typing import Optional
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, Sequence, String
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -9,6 +10,8 @@ class Project(Base):
     id = Column(Integer, Sequence("project_id_seq"), primary_key=True)
     name = Column(String(256), nullable=False)
     tester_command = Column(String(256), nullable=False)
+    result_path = Column(String(256), nullable=False)
+    parser_str = Column(String(256), nullable=False)
     repo_url = Column(String(256), nullable=False)
     git_user = Column(String(256), nullable=False)
     auth_token = Column(String(256), nullable=False)
@@ -22,6 +25,8 @@ class Project(Base):
             self,
             name: str,
             tester_command: str,
+            result_path: str,
+            parser_str: str,
             repo_url: str,
             git_user: str,
             auth_token: str,
@@ -33,6 +38,8 @@ class Project(Base):
 
         self.name = name
         self.tester_command = tester_command
+        self.result_path = result_path
+        self.parser_str = parser_str
         self.repo_url = repo_url
         self.git_user = git_user
         self.auth_token = auth_token
@@ -43,21 +50,7 @@ class Project(Base):
         self.email = email
 
     def __repr__(self):
-        return f"<Project(id='{self.id}', name='{self.name}', tester_command='{self.tester_command}', repo_url='{self.repo_url}', git_user='{self.git_user}', main_branch='{self.main_branch}', auth_token='{self.auth_token}', config_path='{self.config_path}'', two_container='{self.two_container}', tester_image='{self.tester_image}', email='{self.email}')>"
-
-
-class Commit(Base):
-    __tablename__ = "commits"
-    id = Column(Integer, Sequence("commit_id_seq"), primary_key=True)
-    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
-    commit_hash = Column(String(32), nullable=False)
-
-    def __init__(self, project_id: int, commit_hash: str):
-        self.project_id = project_id
-        self.commit_hash = commit_hash
-
-    def __repr__(self):
-        return f"<Commit(id='{self.id}', project_id='{self.project_id}', commit_hash='{self.commit_hash}')>"
+        return f"<Project(id='{self.id}', name='{self.name}', tester_command='{self.tester_command}', result_path='{self.result_path}', parser_int='{self.parser_str}', repo_url='{self.repo_url}', git_user='{self.git_user}', main_branch='{self.main_branch}', auth_token='{self.auth_token}', config_path='{self.config_path}'', two_container='{self.two_container}', tester_image='{self.tester_image}', email='{self.email}')>"
 
 
 class Config(Base):
@@ -78,10 +71,17 @@ class TestGroup(Base):
     __tablename__ = "test_groups"
     id = Column(Integer, Sequence("test_groups_id_seq"), primary_key=True)
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    threshold = Column(Integer, nullable=False)
     whole_project_test = Column(Boolean(), nullable=False)
 
-    def __init__(self, project_id: int, whole_project_test: bool):
+    def __init__(
+            self,
+            project_id: int,
+            threshold: int,
+            whole_project_test: bool):
+
         self.project_id = project_id
+        self.threshold = threshold
         self.whole_project_test = whole_project_test
 
     def __repr__(self):
@@ -91,31 +91,34 @@ class TestGroup(Base):
 class Test(Base):
     __tablename__ = "tests"
     id = Column(Integer, Sequence("tests_id_seq"), primary_key=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
     config_id = Column(Integer, ForeignKey("configs.id"), nullable=False)
-    commit_id = Column(Integer, ForeignKey("commits.id"), nullable=False)
-    preceding_test_id = Column(Integer, ForeignKey("commits.id"))
-    following_commit_id = Column(Integer, ForeignKey("commits.id"))
+    commit_hash = Column(String(32), nullable=False)
+    preceding_commit_hash = Column(String(32))
+    following_commit_hash = Column(String(32))
     result = Column(String(65536))
     finished = Column(Boolean(False), nullable=False)
     revelead_cdpb = Column(Boolean(False), nullable=False)
 
     def __init__(
             self,
+            project_id: int,
             config_id: int,
-            commit_id: int,
-            preceding_commit_id: int | None,
-            following_commit_id: int | None):
+            commit_hash: int,
+            preceding_commit_hash: Optional[str],
+            following_commit_hash: Optional[str]):
 
+        self.project_id = project_id
         self.config_id = config_id
-        self.commit_id = commit_id
+        self.commit_hash = commit_hash
         self.result = None
         self.finished = False
         self.revealed_bug = False
-        self.preceding_commit_id = preceding_commit_id
-        self.following_commit_id = following_commit_id
+        self.preceding_commit_hash = preceding_commit_hash
+        self.following_commit_hash = following_commit_hash
 
     def __repr__(self):
-        return f"<Test(id='{self.id}', config_id='{self.config_id}', commit_id='{self.commit_id}', content='{self.result}', finished='{self.finished}'', preceding_commit_id='{self.preceding_commit_id}'', following_commit_id='{self.following_commit_id}')>"
+        return f"<Test(id='{self.id}', config_id='{self.config_id}', commit_hash='{self.commit_hash}', content='{self.result}', finished='{self.finished}'', preceding_commit_hash='{self.preceding_commit_hash}'', following_commit_hash='{self.following_commit_hash}')>"
 
 
 class TestInTestGroup(Base):

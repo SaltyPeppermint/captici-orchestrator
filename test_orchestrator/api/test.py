@@ -1,12 +1,12 @@
 # APIRouter creates path operations for item module
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, HTTPException, status
 from fastapi.exceptions import HTTPException
-from fastapi.params import Body, Depends, Path, Query
+from fastapi.params import Body, Depends, Query
 from sqlalchemy.orm import Session
 from test_orchestrator import storage, testing
 from test_orchestrator.storage.sql.database import get_db
 
-from .request_bodies import CommitTestRequest
+from .request_bodies import CommitTestRequest, ProjectTestRequest
 from .response_bodies import TestResponse
 
 router = APIRouter(
@@ -16,29 +16,39 @@ router = APIRouter(
 )
 
 
-@router.post("/project", status_code=status.HTTP_200_OK)
-async def request_commit_test(
-        project_id: int = Query(..., title="Project_id to test", gt=0),
-        testing_request: CommitTestRequest = Body(...),
-        db: Session = Depends(get_db)):
-
-    test_id = testing.commit.test_single_commit(
-        db, project_id, testing_request)
-    return {"test_id": test_id}
-
-
 @router.post("/commit", status_code=status.HTTP_200_OK)
 async def request_commit_test(
+        background_tasks: BackgroundTasks,
         project_id: int = Query(..., title="Project_id to test", gt=0),
         testing_request: CommitTestRequest = Body(...),
         db: Session = Depends(get_db)):
 
-    test_id = testing.commit.test_multiple_commits(
-        db, project_id, testing_request)
-    return {"test_id": test_id}
+    test_group_id = storage.test_groups.add(
+        db, project_id, testing_request.threshold, False)
+    background_tasks.add_task(
+        testing.test.test_commit,
+        db, project_id, test_group_id, testing_request)
+
+    return {"test_group_id": test_group_id}
 
 
-@router.get("/report", response_model=TestResponse, status_code=status.HTTP_200_OK)
+@router.post("/project", status_code=status.HTTP_200_OK)
+async def request_project_test(
+        background_tasks: BackgroundTasks,
+        project_id: int = Query(..., title="Project_id to test", gt=0),
+        testing_request: ProjectTestRequest = Body(...),
+        db: Session = Depends(get_db)):
+
+    test_group_id = storage.test_groups.add(
+        db, project_id, testing_request.threshold, True)
+    background_tasks.add_task(
+        testing.test.test_whole_project,
+        db, project_id, test_group_id, testing_request)
+
+    return {"test_group_id": test_group_id}
+
+
+@ router.get("/report", response_model=TestResponse, status_code=status.HTTP_200_OK)
 async def read_test_report(
         test_id: int = Query(..., title="(Id of the test", gt=0),
         db: Session = Depends(get_db)):

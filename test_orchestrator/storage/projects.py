@@ -3,15 +3,18 @@ import sqlalchemy
 
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import delete, select, join
-from test_orchestrator.api.request_bodies import RegisterRequest
+from test_orchestrator.api.request_bodies import RegisterRequest, Parser
 
 from .sql import models
 
 
 def add(db: Session, req: RegisterRequest) -> int:
+    parser_str = req.parser.value
     project = models.Project(req.name,
                              req.tester_command,
+                             req.result_path,
                              req.repo_url,
+                             parser_str,
                              req.git_user,
                              req.auth_token,
                              req.main_branch,
@@ -46,6 +49,12 @@ def deleteById(db: Session, project_id: int) -> bool:
 
 def id2name(db: Session, project_id: int) -> str:
     stmt = (select(models.Project.name)
+            .where(models.Project.id == project_id))
+    return db.execute(stmt).scalars().one()
+
+
+def id2result_path(db: Session, project_id: int) -> str:
+    stmt = (select(models.Project.result_path)
             .where(models.Project.id == project_id))
     return db.execute(stmt).scalars().one()
 
@@ -85,18 +94,8 @@ def id2git_info(db: Session, project_id: int) -> Tuple[str, str, str]:
     # return ("github.com/BurntSushi/ripgrep.git", "git", "")
 
 
-def id2test_ids(db: Session, project_id: int) -> List[int]:
-    # SELECT config, commit FROM tests JOIN commits where project_id = project_id
-    j = join(models.Commit, models.Test,
-             models.Commit.id == models.Test.commit_id)
-    stmt = (select(models.Test.config_id).select_from(j)
-            .where(models.Commit.project_id == project_id))
-    with_duplicates = db.execute(stmt).scalars().all()
-    return list(set(with_duplicates))
-
-
-def id2config_ids(db: Session, project_id: int) -> List[int]:
-    stmt = (select(models.Config.id)
-            .where(models.Config.project_id == project_id))
-    with_duplicates = db.execute(stmt).scalars().all()
-    return list(set(with_duplicates))
+def id2parser(db: Session, project_id: int) -> Parser:
+    stmt = (select(models.Project.parser_str)
+            .where(models.Project.id == project_id))
+    parser_str = db.execute(stmt).scalars().one()
+    return Parser(parser_str)

@@ -1,8 +1,8 @@
 import math
-from typing import List
+from typing import List, Tuple
 
 from sqlalchemy.orm import Session
-from test_orchestrator.storage import repos, commits
+from test_orchestrator.storage import repos
 
 
 def choose_middle(left_bounding_item, right_bounding_item, items):
@@ -34,15 +34,30 @@ def uniform_choice(commit_hashs: List[str], n_commits: int) -> List[str]:
 def middle_select(
         db: Session,
         project_id: int,
-        preceding_commit_id: str,
-        following_commit_id: str) -> str:
+        preceding_commit_hash: str,
+        following_commit_hash: str) -> str:
 
-    preceding_commit_hash = commits.id2hash(preceding_commit_id)
-    following_commit_hash = commits.id2hash(following_commit_id)
     all_commit_hashs = repos.get_all_commits(db, project_id)
     middle_item = choose_middle(
         preceding_commit_hash, following_commit_hash, all_commit_hashs)
     return middle_item
+
+
+def assign_bounds(
+        commit_hashs: List[str],
+        i: int) -> Tuple[int | None, int | None]:
+
+    if i == 0:
+        preceding_commit_hash = None
+    else:
+        preceding_commit_hash = commit_hashs[i-1]
+
+    if i == len(commit_hashs) - 1:
+        following_commit_hash = None
+    else:
+        following_commit_hash = commit_hashs[i+1]
+
+    return preceding_commit_hash, following_commit_hash
 
 
 def initial_sample_select(

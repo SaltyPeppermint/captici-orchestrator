@@ -1,10 +1,10 @@
-import storage
+from test_orchestrator import storage
+from test_orchestrator.api.request_bodies import Parser
 
 from . import demo
 
 
-def report2value(report: str, project_id: int) -> float:
-    type = storage.projects.id2type(project_id)
+def result2value(report: str, type: Parser) -> float:
     if(type == storage.projects.ProjectType.DEMO):
         return demo.report2value(report)
     else:

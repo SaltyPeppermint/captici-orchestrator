@@ -22,7 +22,7 @@ def get_kube_api() -> core_v1_api.CoreV1Api:
     return core_v1
 
 
-def execute_manifest(manifest) -> None:
+def execute_pod_manifest(manifest) -> None:
     api = get_kube_api()
 
     name = manifest["metadata"]["name"]
@@ -35,50 +35,102 @@ def execute_manifest(manifest) -> None:
         if resp.status.phase != "Pending":
             break
         time.sleep(1)
-    print("Done.")
+    print(f"{name} scheduled.")
+
+
+def await_pod_manifest(manifest) -> None:
+    api = get_kube_api()
+
+    name = manifest["metadata"]["name"]
+    namespace = config["K8s"]["namespace"]
+    resp = None
+    while True:
+        resp = api.read_namespaced_pod(name=name, namespace=namespace)
+        if resp.status.phase != "Succeeded":
+            break
+        time.sleep(1)
+    print(f"{name} succeeded.")
     return
 
 
-def build_commit(db: Session, project_id: int, commit_hash: str) -> str:
-    tar_path = storage.tars.tar_into(project_id, commit_hash)
-    project_name = storage.projects.id2name(db, project_id)
-    build_name = f"kaniko-{project_id}-{project_name}-{commit_hash}"
+def execute_config_map_manifest(manifest) -> None:
+    api = get_kube_api()
 
+    name = manifest["metadata"]["name"]
+    namespace = config["K8s"]["namespace"]
+    resp = None
+
+    resp = api.create_namespaced_config_map(body=manifest, namespace=namespace)
+    while True:
+        resp = api.read_namespaced_config_map(name=name, namespace=namespace)
+        if resp.status.phase != "Pending":
+            break
+        time.sleep(1)
+    print(f"{name} scheduled.")
+
+
+def await_config_map_manifest(manifest) -> None:
+    api = get_kube_api()
+
+    name = manifest["metadata"]["name"]
+    namespace = config["K8s"]["namespace"]
+    resp = None
+
+    while True:
+        resp = api.read_namespaced_config_map(name=name, namespace=namespace)
+        if resp.status.phase != "Succeeded":
+            break
+        time.sleep(1)
+    print(f"{name} succeeded.")
+    return
+
+
+def build_commit(project_name: str, project_id: int, commit_hash: str) -> str:
+    tar_path = storage.tars.tar_into(project_id, commit_hash)
     registry_url = config["Registry"]["url"]
     registry_user = config["Registry"]["user"]
     image_name = f"{registry_url}/{registry_user}/{project_id}-{project_name}:{commit_hash}"
 
-    pod_manifest = templates.build_pod(build_name, image_name, tar_path)
-    execute_manifest(pod_manifest)
+    pod_manifest = templates.pod_builder_pod(project_id, image_name, tar_path)
+    execute_pod_manifest(pod_manifest)
+    await_pod_manifest(pod_manifest)
     return image_name
+
+
+def get_project_meta(db, project_id):
+    config_path = storage.projects.id2config_path(db, project_id)
+    tester_command = storage.projects.id2tester_command(db, project_id)
+    result_path = storage.projects.id2result_path(db, project_id)
+    is_two_container = storage.projects.id2is_two_container(db, project_id)
+    return config_path, tester_command, result_path, is_two_container
 
 
 def run_container_test(
         db: Session,
         project_id: int,
+        config_id: int,
         test_id: int,
+        test_group_id: int,
         app_image_name: str) -> None:
 
-    identifier = f"test-{test_id}"
-    config_id = storage.tests.id2config_id(db, test_id)
-    config_mount = storage.projects.id2config_path(db, project_id)
+    config_path, tester_command, result_path, two_container = get_project_meta(
+        db, project_id)
 
-    config_map_name = f"config-{identifier}"
     config_content = storage.configs.id2content(db, config_id)
     config_map_manifest = templates.config_map(
-        config_map_name, config_content)
+        test_id, config_content)
 
-    tester_command = storage.projects.id2tester_command(db, project_id)
-    is_two_container = storage.projects.id2is_two_container(db, project_id)
-    if(is_two_container):
+    if(two_container):
         tester_image_name = storage.projects.id2tester_image(
             db, project_id)
-        pod_manifest = templates.two_pod(
-            identifier, app_image_name, tester_image_name, config_map_name, config_mount, tester_command, test_id)
+        pod_manifest = templates.pod(
+            test_id, app_image_name, app_image_name, config_path, tester_command, result_path, test_group_id, tester_image_name)
     else:
-        pod_manifest = templates.one_pod(
-            identifier, app_image_name, config_map_name, config_mount, tester_command, test_id)
+        pod_manifest = templates.pod(
+            test_id, app_image_name, app_image_name, config_path, tester_command, result_path, test_group_id)
 
-    execute_manifest(config_map_manifest)
-    execute_manifest(pod_manifest)
+    execute_config_map_manifest(config_map_manifest)
+    await_config_map_manifest(config_map_manifest)
+
+    execute_pod_manifest(pod_manifest)
     return

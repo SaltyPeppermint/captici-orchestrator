@@ -5,23 +5,21 @@ from test_orchestrator.api.response_bodies import TestResponse
 from .sql import models
 
 
-def add(db: Session, project_id: int, whole_project_test: bool) -> int:
-    test = models.TestGroup(project_id, whole_project_test)
+def add(
+        db: Session,
+        project_id: int,
+        threshold: float,
+        whole_project_test: bool) -> int:
+
+    test = models.TestGroup(
+        project_id,
+        threshold,
+        whole_project_test)
+
     db.add(test)
     db.commit()
     db.refresh(test)
     return test.id
-
-
-def add_test_to_test_group(
-        db: Session,
-        test_id: int,
-        test_group_id: int) -> None:
-    test_in_test_group = models.TestInTestGroup(test_group_id, test_id)
-    db.add(test_in_test_group)
-    db.commit()
-    db.refresh(test_in_test_group)
-    return
 
 
 def get_test_report(db: Session, test_id: int) -> TestResponse:
@@ -29,6 +27,18 @@ def get_test_report(db: Session, test_id: int) -> TestResponse:
         2: "AS", 3: "asdf"}, is_regression=True, regressing_config=[2, 3])
     # TODO IMPLEMENT
     return test_report
+
+
+def id2threshold(db: Session, test_result_id: int) -> float:
+    stmt = (select(models.TestGroup.threshold)
+            .where(models.TestGroup.id == test_result_id))
+    return db.execute(stmt).scalars().one()
+
+
+def id2whole_project_test(db: Session, test_result_id: int) -> bool:
+    stmt = (select(models.TestGroup.whole_project_test)
+            .where(models.TestGroup.id == test_result_id))
+    return db.execute(stmt).scalars().one()
 
 
 def id2exists(db: Session, test_id: int) -> bool:
