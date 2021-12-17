@@ -11,7 +11,7 @@ email-validator = "^1.1.3"
 kubernetes = "^19.15.0"
 GitPython = "^3.1.24"
 uvicorn = "^0.15.0"
-SQLAlchemy = "^1.4.27"
+SQLAlchemy = {extras = ["mypy"], version = "^1.4.28"}
 junitparser = "^2.2.0"
 
 [tool.poetry.dev-dependencies]
@@ -20,7 +20,8 @@ fastapi = {extras = ["all"], version = "^0.70.0"}
 pytest = "^6.2.5"
 ipython = "^7.29.0"
 pip = "^21.3.1"
-pylint = "^2.12.2"
+flake8 = "^4.0.1"
+mypy = "^0.920"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -28,3 +29,8 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 start = "test_orchestrator.main:start"
+
+[tool.mypy]
+plugins = ["sqlalchemy.ext.mypy.plugin"]
+ignore_missing_imports = "True"
+

@@ -1,6 +1,7 @@
 from typing import Optional
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, Sequence, String
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.sql.sqltypes import Float
 
 Base = declarative_base()
 
@@ -33,8 +34,8 @@ class Project(Base):
             main_branch: str,
             config_path: str,
             two_container: bool,
-            tester_image: str,
-            email: str):
+            tester_image: Optional[str],
+            email: Optional[str]):
 
         self.name = name
         self.tester_command = tester_command
@@ -71,13 +72,13 @@ class TestGroup(Base):
     __tablename__ = "test_groups"
     id = Column(Integer, Sequence("test_groups_id_seq"), primary_key=True)
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
-    threshold = Column(Integer, nullable=False)
+    threshold = Column(Float, nullable=False)
     whole_project_test = Column(Boolean(), nullable=False)
 
     def __init__(
             self,
             project_id: int,
-            threshold: int,
+            threshold: float,
             whole_project_test: bool):
 
         self.project_id = project_id
@@ -94,8 +95,8 @@ class Test(Base):
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
     config_id = Column(Integer, ForeignKey("configs.id"), nullable=False)
     commit_hash = Column(String(32), nullable=False)
-    preceding_test_id = Column(String(32))
-    following_test_id = Column(String(32))
+    preceding_test_id = Column(Integer)
+    following_test_id = Column(Integer)
     result = Column(String(65536))
     finished = Column(Boolean(False), nullable=False)
 
@@ -104,8 +105,8 @@ class Test(Base):
             project_id: int,
             config_id: int,
             commit_hash: str,
-            preceding_test_id: Optional[str],
-            following_test_id: Optional[str]):
+            preceding_test_id: Optional[int],
+            following_test_id: Optional[int]):
 
         self.project_id = project_id
         self.config_id = config_id

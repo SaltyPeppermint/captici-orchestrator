@@ -24,7 +24,9 @@ db_type = config["DB"]["type"]
 db_location = config["NFS"]["mount"] + "/sqlite.db"
 print(f"{db_type}://{db_location}")
 engine = sqla.create_engine(
-    f"{db_type}:///{db_location}", echo=True, connect_args={"check_same_thread": False})
+    f"{db_type}:///{db_location}",
+    echo=True,
+    connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(bind=engine, future=True)
 
 if __name__ == "__main__":

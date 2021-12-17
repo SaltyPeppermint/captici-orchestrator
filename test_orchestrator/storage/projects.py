@@ -1,6 +1,7 @@
 from typing import Tuple
-import sqlalchemy
 
+import sqlalchemy
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import delete, select
 from test_orchestrator.api.request_bodies import RegisterRequest, ResultParser
@@ -25,24 +26,27 @@ def add(db: Session, req: RegisterRequest) -> int:
     db.add(project)
     db.commit()
     db.refresh(project)
-    return project.id
+    if project.id:
+        return project.id
+    else:
+        raise SQLAlchemyError("Could not insert project.")
 
 
 def deleteById(db: Session, project_id: int) -> bool:
-    stmt = (select(models.Project)
-            .where(models.Project.id == project_id))
-    existing_project = db.execute(stmt).scalars().one_or_none()
+    selstmt = (select(models.Project)
+               .where(models.Project.id == project_id))
+    existing_project = db.execute(selstmt).scalars().one_or_none()
     if existing_project:
-        stmt = (select(models.Project)
-                .where(models.Project.id == project_id))
-        db.execute(stmt)
+        selstmt = (select(models.Project)
+                   .where(models.Project.id == project_id))
+        db.execute(selstmt)
         db.commit()
     else:
         raise sqlalchemy.exc.NoResultFound
 
-    stmt = (delete(models.Project)
-            .where(models.Project.id == project_id))
-    db.execute(stmt)
+    delstmt = (delete(models.Project)
+               .where(models.Project.id == project_id))
+    db.execute(delstmt)
     db.commit()
     return True
 

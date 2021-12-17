@@ -39,7 +39,7 @@ def get_all_commits(db: Session, project_id: int) -> List[str]:
 def get_filepaths(db: Session, project_id: int, commit_hash: str) -> List[str]:
     repo = git.Repo(get_repo_path(db, project_id))
     changed_files = repo.git.show(commit_hash, pretty="", name_only=True)
-    # im essentiall coding against the cli but it works
+    # im essentially coding against the cli but it works
     return changed_files.split("\n")
 
 

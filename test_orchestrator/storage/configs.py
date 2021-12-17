@@ -1,5 +1,6 @@
 from typing import List
 
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import select
 
@@ -11,7 +12,10 @@ def add(db: Session, project_id: int, content: str) -> int:
     db.add(config)
     db.commit()
     db.refresh(config)
-    return config.id
+    if config.id:
+        return config.id
+    else:
+        raise SQLAlchemyError
 
 
 def id2content(db: Session, config_id: int) -> str:

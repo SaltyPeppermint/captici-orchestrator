@@ -1,11 +1,12 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql.expression import select, update
 
 from .sql import models
 
 
-def id2commit_hash(db: Session, test_id: int) -> int:
+def id2commit_hash(db: Session, test_id: int) -> str:
     stmt = select(models.Test.commit_hash).where(models.Test.id == test_id)
     return db.execute(stmt).scalars().one()
 
@@ -15,18 +16,18 @@ def id2config_id(db: Session, test_id: int) -> int:
     return db.execute(stmt).scalars().one()
 
 
-def id2result(db: Session, test_id: int) -> int:
+def id2result(db: Session, test_id: int) -> str:
     stmt = select(models.Test.result).where(models.Test.id == test_id)
     return db.execute(stmt).scalars().one()
 
 
-def id2preceding_id(db: Session, test_id: int) -> str | None:
+def id2preceding_id(db: Session, test_id: int) -> int | None:
     stmt = (select(models.Test.preceding_test_id)
             .where(models.Test.id == test_id))
     return db.execute(stmt).scalars().one_or_none()
 
 
-def id2following_id(db: Session, test_id: int) -> str | None:
+def id2following_id(db: Session, test_id: int) -> int | None:
     stmt = (select(models.Test.following_test_id)
             .where(models.Test.id == test_id))
     return db.execute(stmt).scalars().one_or_none()
@@ -49,7 +50,9 @@ def update_preceding(
 
     stmt = (update(models.Test)
             .where(models.Test.id == test_id)
-            .values(preceding_commit_hash=preceding_commit_hash, finished=True))
+            .values(
+                preceding_commit_hash=preceding_commit_hash,
+                finished=True))
     db.execute(stmt)
     db.commit()
     return
@@ -62,7 +65,9 @@ def update_following(
 
     stmt = (update(models.Test)
             .where(models.Test.id == test_id)
-            .values(following_commit_hash=following_commit_hash, finished=True))
+            .values(
+                following_commit_hash=following_commit_hash,
+                finished=True))
     db.execute(stmt)
     db.commit()
     return
@@ -81,16 +86,19 @@ def add_empty(
         db: Session,
         project_id: int,
         config_id: int,
-        commit_hash: int,
-        preceding_test_id: Optional[str],
-        following_test_id: Optional[str]) -> int:
+        commit_hash: str,
+        preceding_test_id: Optional[int],
+        following_test_id: Optional[int]) -> int:
 
     test = models.Test(project_id, config_id, commit_hash,
                        preceding_test_id, following_test_id)
     db.add(test)
     db.commit()
     db.refresh(test)
-    return test.id
+    if test.id:
+        return test.id
+    else:
+        raise SQLAlchemyError("Could not insert test")
 
 
 def add_result(db: Session, test_id: int, result: str):

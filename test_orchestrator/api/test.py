@@ -1,3 +1,6 @@
+# type: ignore
+# temporarily disabling pydantic mypy checking due to bug
+# https://github.com/samuelcolvin/pydantic/pull/3175#issuecomment-914897604
 # APIRouter creates path operations for item module
 from fastapi import APIRouter, BackgroundTasks, HTTPException, status
 from fastapi.params import Body, Depends, Query
@@ -5,7 +8,7 @@ from sqlalchemy.orm import Session
 from test_orchestrator import storage, testing
 from test_orchestrator.storage.sql.database import get_db
 
-from .request_bodies import CommitTestRequest, ProjectTestRequest
+from .request_bodies import ProjectTestRequest, CommitTestRequest
 from .response_bodies import TestResponse
 
 router = APIRouter(
@@ -47,7 +50,9 @@ async def request_project_test(
     return {"test_group_id": test_group_id}
 
 
-@ router.get("/report", response_model=TestResponse, status_code=status.HTTP_200_OK)
+@router.get("/report",
+            response_model=TestResponse,
+            status_code=status.HTTP_200_OK)
 async def read_test_report(
         test_group_id: int = Query(..., title="(Id of the test_group", gt=0),
         db: Session = Depends(get_db)):

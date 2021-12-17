@@ -11,7 +11,7 @@ class JunitParsingWarning(UserWarning):
 
 def result2value(report: str) -> float:
     junit = JUnitXml.fromstring(report)
-    total_time = 0
+    total_time = 0.0
     for suite in junit:
         # print(suite)
         for case in suite:

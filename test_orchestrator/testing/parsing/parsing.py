@@ -7,4 +7,4 @@ def result2value(report: str, parser_type: ResultParser) -> float:
     if parser_type == ResultParser.JUNIT:
         return demo.result2value(report)
     else:
-        raise AttributeError("What kind of Project Type are you running?")
+        raise AttributeError("Parser not supported.")

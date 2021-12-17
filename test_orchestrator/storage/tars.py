@@ -15,7 +15,8 @@ def get_tar_path(tar_folder, commit_hash) -> str:
 def get_tar_folder(db: Session, project_id: int) -> str:
     nfs_mount = config["NFS"]["mount"]
     tar_dir = config["Directories"]["tar_dir"]
-    return f"{nfs_mount}{tar_dir}/{project_id}-{projects.id2name(db, project_id)}"
+    project_name = projects.id2name(db, project_id)
+    return f"{nfs_mount}{tar_dir}/{project_id}-{project_name}"
 
 
 def tar_into(db: Session, project_id: int, commit_hash: str) -> str:
@@ -35,8 +36,9 @@ def tar_into(db: Session, project_id: int, commit_hash: str) -> str:
         os.makedirs(tar_folder)
 
     with tarfile.open(tar_path, mode="w:gz") as tar:
-        tar.add(repo_path, recursive=True,
-                filter=lambda tarinfo: None if ".git" in tarinfo.name else tarinfo)
+        tar.add(
+            repo_path, recursive=True,
+            filter=lambda tarinfo: None if ".git" in tarinfo.name else tarinfo)
 
     repo.git.checkout(main_branch)
     return tar_path

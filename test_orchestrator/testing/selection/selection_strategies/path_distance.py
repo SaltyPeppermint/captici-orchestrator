@@ -25,7 +25,9 @@ def commit_distance(
         commit_files1: List[str], commit_files2: List[str]) -> float:
 
     path_product = itertools.product(commit_files1, commit_files2)
-    path_distances = itertools.starmap(path_product)
+    path_distances = []
+    for path1, path2 in path_product:
+        path_distances.append(file_path_distance(path1, path2))
     return sum(path_distances) / len(path_distances)
 
 
@@ -49,5 +51,5 @@ def select(
 
     sorted_by_distance = dict(sorted(by_distance.items()))
 
-    top_tests = sorted_by_distance.items()[:n_configs]
+    top_tests = list(sorted_by_distance.items())[:n_configs]
     return top_tests

@@ -1,3 +1,6 @@
+# type: ignore
+# temporarily disabling pydantic mypy checking due to bug
+# https://github.com/samuelcolvin/pydantic/pull/3175#issuecomment-914897604
 # APIRouter creates path operations for item module
 from fastapi import APIRouter, status
 from fastapi.params import Body, Depends, Query
@@ -14,10 +17,14 @@ router = APIRouter(
 
 @router.post("/add", status_code=status.HTTP_200_OK)
 async def add_project(
-        project_id: int = Query(...,
-                                title="Id of the project to add config to", gt=0),
-        config: str = Body(...,
-                           description="Config as a string. Max length of 4096 characters.", max_length=65536),
+        project_id: int = Query(
+            ...,
+            title="Id of the project to add config",
+            gt=0),
+        config: str = Body(
+            ...,
+            description="Config as a str. Max length 4096.",
+            max_length=65536),
         db: Session = Depends(get_db)):
 
     config_id = storage.configs.add(db, project_id, config)
@@ -26,7 +33,9 @@ async def add_project(
 
 @router.get("/get", status_code=status.HTTP_200_OK)
 async def get_config_content(
-        config_id: int = Query(..., title="Id of the config to get", gt=0),
+        config_id: int = Query(
+            ...,
+            title="Id of the config to get", gt=0),
         db: Session = Depends(get_db)):
 
     config = storage.configs.id2content(db, config_id)
@@ -35,7 +44,9 @@ async def get_config_content(
 
 @router.get("/get_all", status_code=status.HTTP_200_OK)
 async def register_project(
-        project_id: int = Query(..., title="Id of the project to test", gt=0),
+        project_id: int = Query(
+            ...,
+            title="Id of the project to test", gt=0),
         db: Session = Depends(get_db)):
 
     config_ids = storage.configs.project_id2ids(db, project_id)

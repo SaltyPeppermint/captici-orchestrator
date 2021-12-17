@@ -11,14 +11,18 @@ namespace = config["K8s"]["NAMESPACE"]
 adapter_dir = config["Directories"]["adapter_dir"]
 adapter_bin = config["Directories"]["adapter_bin"]
 adapter_path = adapter_dir + adapter_bin
-adapter_url = "http://test-orachestrator.svc.cluster.local/adapter"
-sh_string = f"'wget -O {adapter_path} {adapter_url} && chmod +x {adapter_path}'"
+adapter_url = "http://test-orachestrator.svc.cluster.local/internal/adapter"
+sh_cmd = f"'wget -O {adapter_path} {adapter_url} && chmod +x {adapter_path}'"
 
 
 def pod_builder_pod(project_id: int, image_name: str, tar_path: str) -> V1Pod:
     regcred_vol_name = f"{project_id}-RegcredVol"
     tar_vol_name = f"{project_id}-TarVol"
     context_dir = "/context"
+    args = [
+        f"--context=tar://{context_dir}/context.tar.gz",
+        f"--destination={image_name}",
+        "--cache=True"]
 
     return V1Pod(
         V1ObjectMeta(name=f"{project_id}-BuildPod", namespace=namespace),
@@ -35,8 +39,7 @@ def pod_builder_pod(project_id: int, image_name: str, tar_path: str) -> V1Pod:
             containers=[V1Container(
                 name=f"{project_id}-Kaniko",
                 image="gcr.io/kaniko-project/executor:latest",
-                args=[f"--context=tar://{context_dir}/context.tar.gz", f"--destination={image_name}",
-                      "--cache=True"],
+                args=args,
                 volume_mounts=[
                     V1VolumeMount(
                         name=regcred_vol_name,
@@ -75,7 +78,7 @@ def adapter_init_container(test_id: int):
         name=f"{test_id}-AdapterInjector",
         image="gcr.io/google-containers/busybox:latest",
         command=["sh -c"],
-        args=[sh_string],
+        args=[sh_cmd],
         volume_mounts=[
             V1VolumeMount(
                 name=adapter_vol_name(test_id),
@@ -84,19 +87,19 @@ def adapter_init_container(test_id: int):
     )
 
 
-def config_map(test_id: str, config_data: Dict[str, str]):
+def config_map(test_id: int, config_dict: Dict[str, str]):
     return V1ConfigMap(
         metadata=V1ObjectMeta(name=config_map_name(test_id)),
-        data=config_data,
+        data=config_dict,
         kind="ConfigMap",
         api_version="v1"
     )
 
 
 def pod(
-        test_id: str,
+        test_id: int,
         app_image_name: str,
-        config_path: str,
+        config_folder: str,
         tester_command: str,
         result_path: str,
         threshold: float,
@@ -109,7 +112,8 @@ def pod(
         spec=V1PodSpec(
             init_containers=[adapter_init_container(test_id)],
             containers=pod_container(
-                test_id, app_image_name, config_path, env, tester_image_name),
+                test_id, app_image_name, config_folder,
+                env, tester_image_name),
             volumes=[
                 V1Volume(
                     V1ConfigMapVolumeSource(name=config_map_name(test_id)),
@@ -130,7 +134,7 @@ def pod(
 def pod_container(
         test_id: int,
         app_image_name: str,
-        config_path: str,
+        config_folder: str,
         env: List[V1EnvVar],
         tester_image_name: Optional[str]) -> List[V1Container]:
 
@@ -142,7 +146,7 @@ def pod_container(
                 volume_mounts=[
                     V1VolumeMount(
                         name=config_vol_name(test_id),
-                        mount_path=config_path)
+                        mount_path=config_folder)
                 ]
             ),
             V1Container(
@@ -166,7 +170,7 @@ def pod_container(
             volume_mounts=[
                 V1VolumeMount(
                     name=config_vol_name(test_id),
-                    mount_path=config_path),
+                    mount_path=config_folder),
                 V1VolumeMount(
                     name=adapter_vol_name(test_id),
                     mount_path=adapter_dir)
@@ -187,17 +191,17 @@ def pod_env(tester_command: str, threshold: float, result_path: str):
     ]
 
 
-def pod_name(test_id):
+def pod_name(test_id: int) -> str:
     return f"{test_id}-Pod"
 
 
-def adapter_vol_name(test_id):
+def adapter_vol_name(test_id: int) -> str:
     return f"{test_id}-AdapterVol"
 
 
-def config_vol_name(test_id):
+def config_vol_name(test_id: int) -> str:
     return f"{test_id}-ConfigVol"
 
 
-def config_map_name(test_id: str):
+def config_map_name(test_id: int) -> str:
     return f"{test_id}-ConfigMap"

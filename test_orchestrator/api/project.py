@@ -1,6 +1,9 @@
+# type: ignore
+# temporarily disabling pydantic mypy checking due to bug
+# https://github.com/samuelcolvin/pydantic/pull/3175#issuecomment-914897604
+import sqlalchemy
 from fastapi import APIRouter, HTTPException, status
 from fastapi.params import Depends, Query
-import sqlalchemy
 from sqlalchemy.orm import Session
 from test_orchestrator.storage import projects
 from test_orchestrator.storage.sql.database import get_db
@@ -25,8 +28,9 @@ async def register_project(
 
 @router.delete("/delete", status_code=status.HTTP_200_OK)
 async def delete_project(
-        project_id: int = Query(...,
-                                title="Id of the project to delete", gt=0),
+        project_id: int = Query(
+            ...,
+            title="Id of the project to delete", gt=0),
         db: Session = Depends(get_db)):
 
     try:
@@ -34,4 +38,5 @@ async def delete_project(
         return
     except sqlalchemy.exc.NoResultFound as no_result:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Project not found") from no_result
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found") from no_result

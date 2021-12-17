@@ -1,5 +1,6 @@
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
-from sqlalchemy.sql.expression import select
+from sqlalchemy.sql.expression import join, select
 
 from .sql import models
 
@@ -18,7 +19,10 @@ def add(
     db.add(test)
     db.commit()
     db.refresh(test)
-    return test.id
+    if test.id:
+        return test.id
+    else:
+        raise SQLAlchemyError("Could not insert test.")
 
 
 def id2threshold(db: Session, test_group_id: int) -> float:
@@ -47,10 +51,9 @@ def id2exists(db: Session, test_id: int) -> bool:
 
 
 def id2finished(db: Session, test_group_id: int) -> bool:
-    j = (models.Test
-         .join(models.TestInTestGroup,
-               models.TestInTestGroup.test_id == models.Test.id))
+    j = join(models.Test, models.TestInTestGroup,
+             models.TestInTestGroup.test_id == models.Test.id)
     stmt = (select(models.Test.finished).select_from(j)
-            .where(models.TestInTestGroup.id == test_group_id))
-    tests_finished = db.execute(stmt).scalars().all
+            .where(models.TestInTestGroup.test_group_id == test_group_id))
+    tests_finished = db.execute(stmt).scalars().all()
     return all(tests_finished)

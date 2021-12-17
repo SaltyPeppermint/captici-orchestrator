@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import Dict, List
 
 from sqlalchemy.orm import Session
 from test_orchestrator import storage
@@ -39,23 +39,31 @@ def is_bug_between(
         parser: ResultParser,
         threshold: float,
         result_a: str,
-        result_b: int) -> bool:
+        result_b: str) -> bool:
     value_a = parsing.result2value(result_a, parser)
     value_b = parsing.result2value(result_b, parser)
     return rel_diff(value_a, value_b) > threshold
 
 
-def get_diffs(db, test_ids_in_group: List[int]) -> List[Tuple[int, float]]:
+def get_diffs(db, test_ids_in_group: List[int]) -> Dict[int, float]:
     return_dict = {}
     for test_id in test_ids_in_group:
+        project_id = storage.tests.id2project_id(db, test_id)
+        parser = storage.projects.id2parser(db, project_id)
         preceding_id = storage.tests.id2preceding_id(db, test_id)
         if preceding_id:
             test_result = storage.tests.id2result(db, test_id)
+            test_perf = parsing.result2value(test_result, parser)
+
             preceding_result = storage.tests.id2result(db, preceding_id)
+            preceding_perf = parsing.result2value(preceding_result, parser)
+
             return_dict[test_id] = rel_diff(
-                preceding_result, test_result)
+                preceding_perf, test_perf)
         else:
-            return_dict[test_id] = None
+            return_dict[test_id] = 0
+
+    return return_dict
 
 
 def testing_report(db, test_group_id) -> TestResponse:
@@ -68,10 +76,11 @@ def testing_report(db, test_group_id) -> TestResponse:
 
     if bugs_in_group is []:
         return TestResponse(
-            individual_results=get_diffs(db, test_ids_in_group), bug_found=False)
+            individual_results=get_diffs(db, test_ids_in_group),
+            bug_found=False)
     else:
         regressing_configs = list(
-            map(storage.tests.id2config_id, bugs_in_group))
+            map(storage.tests.id2config_id, db, bugs_in_group))
         return TestResponse(
             individual_results=get_diffs(db, test_ids_in_group),
             bug_found=True,
