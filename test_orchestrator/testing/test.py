@@ -1,8 +1,7 @@
-from typing import List, Optional
-
 from sqlalchemy.orm import Session
 from test_orchestrator import k8s, storage
 from test_orchestrator.api import request_bodies
+from test_orchestrator.testing import evaluate
 
 from .selection import commits, configs
 
@@ -13,15 +12,17 @@ def test_commit(
         test_group_id: int,
         req: request_bodies.CommitTestRequest) -> int:
 
-    to_test = configs.select_configs(
-        db, project_id, req.n_configs, req.selection_strategy)
+    tests_with_bugs = evaluate.bugs_in_project(db, project_id, req.threshold)
+    preceding_test_ids = configs.select_configs(
+        db, project_id, req.n_configs, tests_with_bugs, req.selection_strategy)
     project_name = storage.projects.id2name(db, project_id)
     app_image_name = k8s.build_commit(
         project_name, project_id, req.commit_hash)
 
-    for preceding_commit_hash, config_id in to_test:
+    for preceding_test_id in preceding_test_ids:
+        config_id = storage.tests.id2config_id(db, test_id)
         test_id = storage.tests.add_empty(
-            db, config_id, req.commit_hash, preceding_commit_hash, None)
+            db, config_id, req.commit_hash, preceding_test_id, None)
 
         storage.test_in_test_group.add_test_to_test_group(
             db, test_id, test_group_id)
@@ -39,25 +40,71 @@ def test_whole_project(
 
     commit_hashs = commits.initial_sample_select(
         db, project_id, req.n_commits)
-    config_ids = storage.config.project_id2ids(db, project_id)
-    for i, commit_hash in enumerate(commit_hashs):
-        preceding_commit_hash, following_commit_hash = commits.assign_bounds(
-            commit_hashs, i)
 
-        project_name = storage.projects.id2name(db, project_id)
-        app_image_name = k8s.build_commit(
+    project_name = storage.projects.id2name(db, project_id)
+    app_image_names = {}
+    for commit_hash in commit_hashs:
+        app_image_names[commit_hash] = k8s.build_commit(
             project_name, project_id, commit_hash)
 
-        for config_id in config_ids:
+    config_ids = storage.config.project_id2ids(db, project_id)
+
+    for config_id in config_ids:
+        preceding_test_id = None
+        for commit_hash in commit_hashs:
             test_id = storage.tests.add_empty(
-                db, config_id, commit_hash, preceding_commit_hash, following_commit_hash)
-            project_name = storage.projects.id2name(db, test_id)
+                db, config_id, commit_hash, preceding_test_id, None)
             storage.test_in_test_group.add_test_to_test_group(
                 db, test_id, test_group_id)
 
-            k8s.run_container_test(db, project_id, config_id,
-                                   test_id, test_group_id, app_image_name)
+            if preceding_test_id is not None:
+                storage.tests.update_following(db, preceding_test_id, test_id)
+            preceding_test_id = test_id
+
+            app_image_name = app_image_names[commit_hash]
+            k8s.run_container_test(
+                db, project_id, config_id, test_id, test_group_id, app_image_name)
     return
+
+
+def report_action(
+        db: Session,
+        test_group_id: float,
+        test_id: int) -> int:
+
+    project_id, parser, config_id, commit_hash, result = get_test_meta(
+        db, test_id)
+    threshold = storage.test_groups.id2threshold(db, test_group_id)
+
+    preceding_id = storage.tests.id2preceding_id(db, test_id)
+    if preceding_id:
+        preceding_commit_hash = storage.tests.id2commit_hash(db, preceding_id)
+        preceding_result = storage.tests.id2result(db, preceding_id)
+        if evaluate.bug_in_interval(
+                preceding_commit_hash, preceding_result, commit_hash, result, parser, threshold):
+            spawn_test_between(db, project_id, test_group_id, config_id,
+                               preceding_id, preceding_commit_hash, test_id, commit_hash)
+
+    following_id = storage.tests.id2following_id(
+        db, test_id)
+    if following_id:
+        following_commit_hash = storage.tests.id2commit_hash(db, following_id)
+        following_result = storage.tests.id2result(db, following_id)
+        if evaluate.bug_in_interval(
+                commit_hash, result, following_commit_hash, following_result, parser, threshold):
+            spawn_test_between(db, project_id, test_group_id, config_id,
+                               test_id, commit_hash, following_id, following_commit_hash)
+    return
+
+
+def get_test_meta(db: Session, test_id: int):
+    project_id = storage.tests.id2project_id(db, test_id)
+    parser = storage.projects.id2parser(db, project_id)
+
+    config_id = storage.tests.id2config_id(db, test_id)
+    commit_hash = storage.tests.id2commit_hash(db, test_id)
+    result = storage.tests.id2result(db, test_id)
+    return project_id, parser, config_id, commit_hash, result
 
 
 def spawn_test_between(
@@ -65,17 +112,22 @@ def spawn_test_between(
         project_id: int,
         test_group_id: int,
         config_id: int,
-        preceding_commit_hash: int,
-        following_commit_hash: int) -> int:
+        preceding_id: int,
+        preceding_commit_hash: str,
+        following_id: int,
+        following_commit_hash: str) -> int:
 
+    # irrelevant if preceding or following, both have same id
     commit_hash = commits.middle_select(
         db, project_id, preceding_commit_hash, following_commit_hash)
     test_id = storage.tests.add_empty(
-        db, config_id, commit_hash, preceding_commit_hash, following_commit_hash)
+        db, config_id, commit_hash, preceding_id, following_id)
     storage.test_in_test_groups.add_test_to_test_group(
         db, test_id, test_group_id)
-    storage.tests.update_preceding(db, preceding_commit_hash, commit_hash)
-    storage.tests.update_following(db, following_commit_hash, commit_hash)
+
+    # double linked list, redirect pointers
+    storage.tests.update_preceding(db, following_id, commit_hash)
+    storage.tests.update_following(db, preceding_id, commit_hash)
 
     project_name = storage.projects.id2name(db, test_id)
     app_image_name = k8s.build_commit(project_name, project_id, commit_hash)

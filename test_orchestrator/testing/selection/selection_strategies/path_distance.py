@@ -29,15 +29,19 @@ def commit_distance(
     return sum(path_distances) / len(path_distances)
 
 
-def select(db: Session, project_id: int, n_configs: int) -> List[Tuple[str, int]]:
-    test_ids = storage.tests.project_id2ids(db, project_id)
+def select(
+        db: Session,
+        project_id: int,
+        n_configs: int,
+        tests_with_bugs: List[int]) -> List[Tuple[float, int]]:
+
     # TODO Need to specify that this only always works against the current HEAD
 
     head_filepaths = storage.repos.get_filepaths(db, project_id, "HEAD")
 
     by_distance = {}
-    for test_id in test_ids:
-        commit_hash = storage.tests.id2commit_hash(db, test_ids)
+    for test_id in tests_with_bugs:
+        commit_hash = storage.tests.id2commit_hash(db, test_id)
         commit_filepaths = storage.repos.get_filepaths(
             db, project_id, commit_hash)
         distance = commit_distance(head_filepaths, commit_filepaths)
@@ -45,5 +49,5 @@ def select(db: Session, project_id: int, n_configs: int) -> List[Tuple[str, int]
 
     sorted_by_distance = dict(sorted(by_distance.items()))
 
-    top_tests = sorted_by_distance.values()[:n_configs]
+    top_tests = sorted_by_distance.items()[:n_configs]
     return top_tests

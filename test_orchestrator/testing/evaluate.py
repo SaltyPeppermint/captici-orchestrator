@@ -2,12 +2,10 @@ import math
 from typing import List, Tuple
 
 from sqlalchemy.orm import Session
-from test_orchestrator import k8s, storage
-from test_orchestrator.api import project
+from test_orchestrator import storage
 from test_orchestrator.api.request_bodies import Parser
-from test_orchestrator.settings import config
-from test_orchestrator.testing import test
-from test_orchestrator.testing.selection import commits
+from test_orchestrator.api.response_bodies import TestResponse
+
 
 from . import parsing
 
@@ -16,14 +14,26 @@ def rel_diff(x: float, y: float) -> float:
     return math.abs(x - y) / max(x, y)
 
 
-def detect_regressions(results: List[Tuple[str, str]]):
-    for result in results:
-        report_metadata, performance = parsing.report2value(result)
-        # TODO
-        # Immer zwei parsen, storen, und comparen. Falls regression zu ner liste hinzufügen und die dann zurück geben.
-        # Vorteil: Kann auch für nur zwei gebraucht werden.
-        #
-    return  # dummy
+def bugs_in_project(db, project_id, threshold) -> List[int]:
+    test_ids = storage.tests.project_id2ids(db, project_id)
+    parser = storage.projects.id2parser(db, project_id)
+    tests_with_bugs = []
+    for test_id in test_ids:
+        result = storage.tests.id2result(db, test_id)
+
+        preceding_id = storage.tests.id2preceding_id(db, test_id)
+        if preceding_id:
+            preceding_result = storage.tests.id2result(db, preceding_id)
+            if is_bug_between(parser, threshold, preceding_result, result):
+                tests_with_bugs.append(test_id)
+
+        following_id = storage.tests.id2following_id(db, test_id)
+        if following_id:
+            following_result = storage.tests.id2result(db, following_id)
+            if is_bug_between(parser, threshold, result, following_result):
+                tests_with_bugs.append(following_id)
+    # deduplicate
+    return list(set(tests_with_bugs))
 
 
 def is_bug_between(
@@ -36,57 +46,54 @@ def is_bug_between(
     return rel_diff(value_a, value_b) > threshold
 
 
+def get_diffs(db, test_ids_in_group: List[int]) -> List[Tuple[int, float]]:
+    return_dict = {}
+    for test_id in test_ids_in_group:
+        preceding_id = storage.tests.id2preceding_id(db, test_id)
+        if preceding_id:
+            test_result = storage.tests.id2result(db, test_id)
+            preceding_result = storage.tests.id2result(db, preceding_id)
+            return_dict[test_id] = rel_diff(preceding_result, test_result)
+        else:
+            return_dict[test_id] = None
+
+
+def testing_report(db, test_group_id) -> TestResponse:
+    test_ids_in_group = storage.test_in_test_group.test_group_id2test_ids(
+        db, test_group_id)
+    project_id = storage.test_groups.id2project_id(db, test_group_id)
+    threshold = storage.test_groups.id2threshold(db, test_group_id)
+    bugs_in_group = [t for t in test_ids_in_group if t in bugs_in_project(
+        db, project_id, threshold)]
+
+    if bugs_in_group is []:
+        return TestResponse(
+            individual_results=get_diffs(db, test_ids_in_group), bug_found=False)
+    else:
+        regressing_configs = list(
+            map(storage.tests.id2config_id, bugs_in_group))
+        return TestResponse(
+            individual_results=get_diffs(db, test_ids_in_group),
+            bug_found=True,
+            regressing_config=regressing_configs)
+    # test_report = TestResponse(individual_results={
+    #    2: "AS", 3: "asdf"}, bug_found = True, regressing_config = [2, 3])
+    return test_group_id
+
+
 def bug_in_interval(
-        db: Session,
-        left_commit_hash: str,
-        right_commit_hash: str,
-        parser: int,
-        config_id: int,
+        preceding_commit_hash: str,
+        preceding_test_result: str,
+        following_commit_hash: str,
+        following_test_result: str,
+        parser: Parser,
         threshold: float):
 
     parent_relationship = storage.repos.is_parent_commit(
-        left_commit_hash, right_commit_hash)
+        preceding_commit_hash, following_commit_hash)
     if not parent_relationship:
-        left_commit_result = storage.tests.config_id_and_hash2result(
-            db, config_id, left_commit_hash)
-        right_commit_result = storage.tests.config_id_and_hash2result(
-            db, config_id, right_commit_hash)
         bug_between = is_bug_between(
-            parser, threshold, left_commit_result, right_commit_result)
+            parser, threshold, preceding_test_result, following_test_result)
         if bug_between and not parent_relationship:
             return True
     return False
-
-
-def report_action(
-        db: Session,
-        test_group_id: float,
-        test_id: int) -> int:
-
-    project_id, parser, config_id, commit_hash = get_test_meta(db, test_id)
-    threshold = storage.test_groups.id2threshold(db, test_group_id)
-
-    preceding_commit_hash = storage.tests.id2preceding_commit_hash(db, test_id)
-    if preceding_commit_hash:
-        if bug_in_interval(
-                db, preceding_commit_hash, commit_hash, parser, config_id, threshold):
-            test.spawn_test_between(db, project_id, test_group_id, parser,
-                                    preceding_commit_hash, commit_hash)
-
-    following_commit_hash = storage.tests.id2following_commit_hash(
-        db, test_id)
-    if following_commit_hash:
-        if bug_in_interval(
-                db, commit_hash, preceding_commit_hash, parser, config_id, threshold):
-            test.spawn_test_between(db, project_id, test_group_id, config_id,
-                                    commit_hash, preceding_commit_hash)
-    return
-
-
-def get_test_meta(db: Session, test_id: int):
-    project_id = storage.tests.id2project_id(db, test_id)
-    parser = storage.projects.id2parser(db, project_id)
-
-    config_id = storage.tests.id2config_id(db, test_id)
-    commit_hash = storage.tests.id2commit_hash(db, test_id)
-    return project_id, parser, config_id, commit_hash

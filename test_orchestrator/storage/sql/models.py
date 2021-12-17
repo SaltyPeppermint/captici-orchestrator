@@ -94,31 +94,29 @@ class Test(Base):
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
     config_id = Column(Integer, ForeignKey("configs.id"), nullable=False)
     commit_hash = Column(String(32), nullable=False)
-    preceding_commit_hash = Column(String(32))
-    following_commit_hash = Column(String(32))
+    preceding_test_id = Column(String(32))
+    following_test_id = Column(String(32))
     result = Column(String(65536))
     finished = Column(Boolean(False), nullable=False)
-    revelead_cdpb = Column(Boolean(False), nullable=False)
 
     def __init__(
             self,
             project_id: int,
             config_id: int,
-            commit_hash: int,
-            preceding_commit_hash: Optional[str],
-            following_commit_hash: Optional[str]):
+            commit_hash: str,
+            preceding_test_id: Optional[str],
+            following_test_id: Optional[str]):
 
         self.project_id = project_id
         self.config_id = config_id
         self.commit_hash = commit_hash
         self.result = None
         self.finished = False
-        self.revealed_bug = False
-        self.preceding_commit_hash = preceding_commit_hash
-        self.following_commit_hash = following_commit_hash
+        self.preceding_test_id = preceding_test_id
+        self.following_test_id = following_test_id
 
     def __repr__(self):
-        return f"<Test(id='{self.id}', config_id='{self.config_id}', commit_hash='{self.commit_hash}', content='{self.result}', finished='{self.finished}'', preceding_commit_hash='{self.preceding_commit_hash}'', following_commit_hash='{self.following_commit_hash}')>"
+        return f"<Test(id='{self.id}', config_id='{self.config_id}', commit_hash='{self.commit_hash}', content='{self.result}', finished='{self.finished}'', preceding_test_id='{self.preceding_test_id}'', following_test_id='{self.following_test_id}')>"
 
 
 class TestInTestGroup(Base):

@@ -20,14 +20,14 @@ def id2result(db: Session, test_id: int) -> int:
     return db.execute(stmt).scalars().one()
 
 
-def id2preceding_commit_hash(db: Session, test_id: int) -> str | None:
-    stmt = (select(models.Test.preceding_commit_hash)
+def id2preceding_id(db: Session, test_id: int) -> str | None:
+    stmt = (select(models.Test.preceding_test_id)
             .where(models.Test.id == test_id))
     return db.execute(stmt).scalars().one_or_none()
 
 
-def id2following_commit_hash(db: Session, test_id: int) -> str | None:
-    stmt = (select(models.Test.following_commit_hash)
+def id2following_id(db: Session, test_id: int) -> str | None:
+    stmt = (select(models.Test.following_test_id)
             .where(models.Test.id == test_id))
     return db.execute(stmt).scalars().one_or_none()
 
@@ -37,27 +37,7 @@ def id2project_id(db: Session, test_id: int) -> int:
     return db.execute(stmt).scalars().one()
 
 
-def config_id_and_hash2result(
-        db: Session,
-        config_id: int,
-        commit_hash: str) -> int:
-    stmt = (select(models.Test.result)
-            .where(models.Test.config_id == config_id)
-            .where(models.Test.commit_hash == commit_hash))
-    return db.execute(stmt).scalars().one()
-
-
-def config_id_and_hash2id(
-        db: Session,
-        config_id: int,
-        commit_hash: str) -> int:
-    stmt = (select(models.Test.id)
-            .where(models.Test.config_id == config_id)
-            .where(models.Test.commit_hash == commit_hash))
-    return db.execute(stmt).scalars().one()
-
-
-def project_id2test_ids(db: Session, project_id: int) -> List[int]:
+def project_id2ids(db: Session, project_id: int) -> List[int]:
     stmt = (select(models.Test.id).where(models.Test.id == project_id))
     return db.execute(stmt).scalars().all()
 
@@ -101,11 +81,11 @@ def add_empty(
         db: Session,
         config_id: int,
         commit_hash: int,
-        preceding_commit_hash: Optional[str],
-        following_commit_hash: Optional[str]) -> int:
+        preceding_test_id: Optional[str],
+        following_test_id: Optional[str]) -> int:
 
     test = models.Test(config_id, commit_hash,
-                       preceding_commit_hash, following_commit_hash)
+                       preceding_test_id, following_test_id)
     db.add(test)
     db.commit()
     db.refresh(test)

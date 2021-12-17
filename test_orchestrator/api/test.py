@@ -50,16 +50,16 @@ async def request_project_test(
 
 @ router.get("/report", response_model=TestResponse, status_code=status.HTTP_200_OK)
 async def read_test_report(
-        test_id: int = Query(..., title="(Id of the test", gt=0),
+        test_group_id: int = Query(..., title="(Id of the test_group", gt=0),
         db: Session = Depends(get_db)):
 
-    if not storage.test_groups.id2exists(db, test_id):
+    if not storage.test_groups.id2exists(db, test_group_id):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Test not found")
-    elif not storage.test_groups.id2finished(db, test_id):
+    elif not storage.test_groups.id2finished(db, test_group_id):
         raise HTTPException(
             status_code=status.HTTP_202_ACCEPTED,
             detail="Test not ready"
         )
     else:
-        return storage.test_groups.get_test_report(test_id)
+        return testing.evaluate.bugs_in_project(db, test_group_id)

@@ -1,6 +1,5 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import select
-from test_orchestrator.api.response_bodies import TestResponse
 
 from .sql import models
 
@@ -22,15 +21,14 @@ def add(
     return test.id
 
 
-def get_test_report(db: Session, test_id: int) -> TestResponse:
-    test_report = TestResponse(individual_results={
-        2: "AS", 3: "asdf"}, is_regression=True, regressing_config=[2, 3])
-    # TODO IMPLEMENT
-    return test_report
-
-
-def id2threshold(db: Session, test_result_id: int) -> float:
+def id2threshold(db: Session, test_group_id: int) -> float:
     stmt = (select(models.TestGroup.threshold)
+            .where(models.TestGroup.id == test_group_id))
+    return db.execute(stmt).scalars().one()
+
+
+def id2project_id(db: Session, test_result_id: int) -> float:
+    stmt = (select(models.TestGroup.project_id)
             .where(models.TestGroup.id == test_result_id))
     return db.execute(stmt).scalars().one()
 

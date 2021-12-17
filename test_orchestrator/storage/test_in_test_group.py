@@ -16,13 +16,6 @@ def add_test_to_test_group(
     return
 
 
-def get_test_report(db: Session, test_id: int) -> TestResponse:
-    test_report = TestResponse(individual_results={
-        2: "AS", 3: "asdf"}, is_regression=True, regressing_config=[2, 3])
-    # TODO IMPLEMENT
-    return test_report
-
-
 def id2finished(db: Session, test_group_id: int) -> bool:
     j = (models.Test
          .join(models.TestInTestGroup,
@@ -33,7 +26,13 @@ def id2finished(db: Session, test_group_id: int) -> bool:
     return all(tests_finished)
 
 
-def test_id2id(db: Session, test_id: int) -> int:
+def test_id2test_group_ids(db: Session, test_id: int) -> int:
     stmt = (select(models.TestInTestGroup.test_group_id)
             .where(models.TestInTestGroup.test_id == test_id))
-    return db.execute(stmt).scalars().one()
+    return db.execute(stmt).scalars().all()
+
+
+def test_group_id2test_ids(db: Session, test_group_id: int) -> int:
+    stmt = (select(models.TestInTestGroup.test_id)
+            .where(models.TestInTestGroup.test_group_id == test_group_id))
+    return db.execute(stmt).scalars().all()
