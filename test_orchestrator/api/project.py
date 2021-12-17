@@ -21,7 +21,6 @@ router = APIRouter(
 async def register_project(
     register_req: RegisterRequest, db: Session = Depends(get_db)
 ):
-
     project_id = projects.add(db, register_req)
     return {"project_id": project_id}
 
@@ -31,7 +30,6 @@ async def delete_project(
     project_id: int = Query(..., title="Id of the project to delete", gt=0),
     db: Session = Depends(get_db),
 ):
-
     try:
         projects.deleteById(db, project_id)
         return

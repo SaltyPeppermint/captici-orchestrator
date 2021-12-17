@@ -54,24 +54,36 @@ class RegisterRequest(BaseModel):
     )
     repo_url: HttpUrl = Field(
         ...,
-        description="URL of the git repo of the project to test. Must be properly formatted URL including http(s)://",
+        description=(
+            "URL of the git repo of the project to test. Must be properly formatted URL"
+            " including http(s)://"
+        ),
     )
     git_user: str = Field(
         "git",
-        description="Git user of the repo. Max length of 32. Only \\w regex characters and '-' are allowed.",
+        description=(
+            "Git user of the repo. Max length of 32. Only \\w regex characters and '-'"
+            " are allowed."
+        ),
         max_length=32,
         regex=r"(\w|-)+",
     )
     auth_token: str = Field(
         ...,
-        description="Auth token that allows pull access to the repository. Must consist be hexadecimal string of length 32.",
+        description=(
+            "Auth token that allows pull access to the repository. Must consist be"
+            " hexadecimal string of length 32."
+        ),
         min_length=32,
         max_length=32,
         regex=r"[0-9A-Fa-f]+",
     )
     main_branch: str = Field(
         "main",
-        description="Main Branch of the project. Assumed to be main. Only \\w regex characters and are allowed.",
+        description=(
+            "Main Branch of the project. Assumed to be main. Only \\w regex characters"
+            " and are allowed."
+        ),
         max_length=32,
         regex=r"(\w|-)+",
     )

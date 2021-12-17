@@ -25,14 +25,12 @@ async def request_commit_test(
     testing_request: CommitTestRequest = Body(...),
     db: Session = Depends(get_db),
 ):
-
     test_group_id = storage.test_groups.add(
         db, project_id, testing_request.threshold, False
     )
     background_tasks.add_task(
         testing.test.test_commit, db, project_id, test_group_id, testing_request
     )
-
     return {"test_group_id": test_group_id}
 
 
@@ -43,14 +41,12 @@ async def request_project_test(
     testing_request: ProjectTestRequest = Body(...),
     db: Session = Depends(get_db),
 ):
-
     test_group_id = storage.test_groups.add(
         db, project_id, testing_request.threshold, True
     )
     background_tasks.add_task(
         testing.test.test_whole_project, db, project_id, test_group_id, testing_request
     )
-
     return {"test_group_id": test_group_id}
 
 
@@ -59,7 +55,6 @@ async def read_test_report(
     test_group_id: int = Query(..., title="(Id of the test_group", gt=0),
     db: Session = Depends(get_db),
 ):
-
     if not storage.test_groups.id2exists(db, test_group_id):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Test not found"

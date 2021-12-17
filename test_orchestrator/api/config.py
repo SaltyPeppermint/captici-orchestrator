@@ -41,6 +41,5 @@ async def register_project(
     project_id: int = Query(..., title="Id of the project to test", gt=0),
     db: Session = Depends(get_db),
 ):
-
     config_ids = storage.configs.project_id2ids(db, project_id)
     return {"config_ids": config_ids}

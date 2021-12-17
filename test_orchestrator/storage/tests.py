@@ -42,7 +42,6 @@ def project_id2ids(db: Session, project_id: int) -> List[int]:
 
 
 def update_preceding(db: Session, test_id: int, preceding_commit_hash: str) -> None:
-
     stmt = (
         update(models.Test)
         .where(models.Test.id == test_id)
@@ -54,7 +53,6 @@ def update_preceding(db: Session, test_id: int, preceding_commit_hash: str) -> N
 
 
 def update_following(db: Session, test_id: int, following_commit_hash: str) -> None:
-
     stmt = (
         update(models.Test)
         .where(models.Test.id == test_id)
@@ -84,7 +82,6 @@ def add_empty(
     preceding_test_id: Optional[int],
     following_test_id: Optional[int],
 ) -> int:
-
     test = models.Test(
         project_id, config_id, commit_hash, preceding_test_id, following_test_id
     )

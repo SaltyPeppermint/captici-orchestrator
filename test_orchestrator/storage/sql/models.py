@@ -37,7 +37,6 @@ class Project(Base):
         tester_image: Optional[str],
         email: Optional[str],
     ):
-
         self.name = name
         self.tester_command = tester_command
         self.result_path = result_path
@@ -52,7 +51,15 @@ class Project(Base):
         self.email = email
 
     def __repr__(self):
-        return f"<Project(id='{self.id}', name='{self.name}', tester_command='{self.tester_command}', result_path='{self.result_path}', parser_int='{self.parser_str}', repo_url='{self.repo_url}', git_user='{self.git_user}', main_branch='{self.main_branch}', auth_token='{self.auth_token}', config_path='{self.config_path}'', two_container='{self.two_container}', tester_image='{self.tester_image}', email='{self.email}')>"
+        return (
+            f"<Project(id='{self.id}', name='{self.name}',"
+            f" tester_command='{self.tester_command}',"
+            f" result_path='{self.result_path}', parser_int='{self.parser_str}',"
+            f" repo_url='{self.repo_url}', git_user='{self.git_user}',"
+            f" main_branch='{self.main_branch}', auth_token='{self.auth_token}',"
+            f" config_path='{self.config_path}'', two_container='{self.two_container}',"
+            f" tester_image='{self.tester_image}', email='{self.email}')>"
+        )
 
 
 class Config(Base):
@@ -66,7 +73,10 @@ class Config(Base):
         self.content = content
 
     def __repr__(self):
-        return f"<Config(id='{self.id}', project_id='{self.project_id}', content='{self.content}')>"
+        return (
+            f"<Config(id='{self.id}', project_id='{self.project_id}',"
+            f" content='{self.content}')>"
+        )
 
 
 class TestGroup(Base):
@@ -77,7 +87,6 @@ class TestGroup(Base):
     whole_project_test = Column(Boolean(), nullable=False)
 
     def __init__(self, project_id: int, threshold: float, whole_project_test: bool):
-
         self.project_id = project_id
         self.threshold = threshold
         self.whole_project_test = whole_project_test
@@ -105,7 +114,6 @@ class Test(Base):
         preceding_test_id: Optional[int],
         following_test_id: Optional[int],
     ):
-
         self.project_id = project_id
         self.config_id = config_id
         self.commit_hash = commit_hash
@@ -115,7 +123,13 @@ class Test(Base):
         self.following_test_id = following_test_id
 
     def __repr__(self):
-        return f"<Test(id='{self.id}', config_id='{self.config_id}', commit_hash='{self.commit_hash}', content='{self.result}', finished='{self.finished}'', preceding_test_id='{self.preceding_test_id}'', following_test_id='{self.following_test_id}')>"
+        return (
+            f"<Test(id='{self.id}', config_id='{self.config_id}',"
+            f" commit_hash='{self.commit_hash}', content='{self.result}',"
+            f" finished='{self.finished}'',"
+            f" preceding_test_id='{self.preceding_test_id}'',"
+            f" following_test_id='{self.following_test_id}')>"
+        )
 
 
 class TestInTestGroup(Base):

@@ -9,7 +9,6 @@ from .selection import commits, configs
 def test_commit(
     db: Session, project_id: int, test_group_id: int, req: CommitTestRequest
 ) -> None:
-
     tests_with_bugs = evaluate.bugs_in_project(db, project_id, req.threshold)
     preceding_tests = configs.select_configs(
         db, project_id, req.n_configs, tests_with_bugs, req.selection_strategy
@@ -34,7 +33,6 @@ def test_commit(
 def test_whole_project(
     db: Session, project_id: int, test_group_id: int, req: ProjectTestRequest
 ) -> None:
-
     commit_hashs = commits.initial_sample_select(db, project_id, req.n_commits)
 
     app_image_names = {}
@@ -65,7 +63,6 @@ def test_whole_project(
 
 
 def report_action(db: Session, test_group_id: int, test_id: int) -> None:
-
     project_id, parser, config_id, commit_hash, result = get_test_meta(db, test_id)
     threshold = storage.test_groups.id2threshold(db, test_group_id)
 
@@ -141,7 +138,6 @@ def spawn_test_between(
     following_id: int,
     following_commit_hash: str,
 ) -> None:
-
     # irrelevant if preceding or following, both have same id
     commit_hash = commits.middle_select(
         db, project_id, preceding_commit_hash, following_commit_hash
@@ -150,7 +146,6 @@ def spawn_test_between(
         db, project_id, config_id, commit_hash, preceding_id, following_id
     )
     storage.test_in_test_group.add_test_to_test_group(db, test_id, test_group_id)
-
     # double linked list, redirect pointers
     storage.tests.update_preceding(db, following_id, commit_hash)
     storage.tests.update_following(db, preceding_id, commit_hash)

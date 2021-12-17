@@ -11,6 +11,7 @@ def start():
         port=8000,
         reload=True,
     )
+    return
 
 
 if __name__ == "__main__":

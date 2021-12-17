@@ -99,7 +99,6 @@ def bug_in_interval(
     parser: ResultParser,
     threshold: float,
 ):
-
     parent_relationship = storage.repos.is_parent_commit(
         db, project_id, preceding_commit_hash, following_commit_hash
     )

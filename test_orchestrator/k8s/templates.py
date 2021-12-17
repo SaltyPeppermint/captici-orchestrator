@@ -34,7 +34,6 @@ def pod_builder_pod(project_id: int, image_name: str, tar_path: str) -> V1Pod:
         f"--destination={image_name}",
         "--cache=True",
     ]
-
     return V1Pod(
         V1ObjectMeta(name=f"{project_id}-BuildPod", namespace=namespace),
         V1PodSpec(
@@ -183,7 +182,6 @@ def pod_container(
                 ],
             )
         ]
-
     return container_list
 
 

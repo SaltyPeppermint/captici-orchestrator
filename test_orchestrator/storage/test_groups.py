@@ -8,9 +8,7 @@ from .sql import models
 def add(
     db: Session, project_id: int, threshold: float, whole_project_test: bool
 ) -> int:
-
     test = models.TestGroup(project_id, threshold, whole_project_test)
-
     db.add(test)
     db.commit()
     db.refresh(test)

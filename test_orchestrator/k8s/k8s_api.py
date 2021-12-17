@@ -36,6 +36,7 @@ def execute_pod_manifest(manifest) -> None:
             break
         time.sleep(1)
     print(f"{name} scheduled.")
+    return
 
 
 def await_pod_manifest(manifest) -> None:
@@ -67,6 +68,7 @@ def execute_config_map_manifest(manifest) -> None:
             break
         time.sleep(1)
     print(f"{name} scheduled.")
+    return
 
 
 def await_config_map_manifest(manifest) -> None:
@@ -113,7 +115,6 @@ def run_container_test(
     test_group_id: int,
     app_image_name: str,
 ) -> None:
-
     config_path, tester_command, result_path, two_container = get_project_meta(
         db, project_id
     )
@@ -142,7 +143,6 @@ def run_container_test(
             result_path,
             test_group_id,
         )
-
     execute_config_map_manifest(config_map_manifest)
     await_config_map_manifest(config_map_manifest)
 
