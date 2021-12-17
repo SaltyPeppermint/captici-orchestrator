@@ -17,6 +17,7 @@
         "mypy",
         "perfs",
         "pydantic",
+        "pyproject",
         "pytest",
         "regcred",
         "selstmt",

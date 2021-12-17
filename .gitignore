@@ -1,6 +1,3 @@
-# Exclude Secrets
-secrets/
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -143,3 +140,4 @@ cython_debug/
 # My additional excluded repos
 repos/
 tars/
+secrets/

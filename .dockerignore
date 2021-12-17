@@ -25,10 +25,12 @@
 **/tests
 **/.vscode
 README.md
-example.http
-poetry.lock
-pyproject.toml
+# My Additions
+**/.pytest_cache
+**/.mypy_cache
 kubernetes
 repos
 tars
-**/config
+example.http
+poetry.lock
+pyproject.toml
