@@ -35,7 +35,7 @@ def select(
         n_configs: int,
         tests_with_bugs: List[int]) -> List[Tuple[float, int]]:
 
-    # TODO Need to specify that this only always works against the current HEAD
+    # Need to specify that this only always works against the current HEAD
 
     head_filepaths = storage.repos.get_filepaths(db, project_id, "HEAD")
 

@@ -5,7 +5,6 @@ from kubernetes.client import (V1ConfigMap, V1ConfigMapVolumeSource,
                                V1KeyToPath, V1ObjectMeta, V1Pod,
                                V1PodSecurityContext, V1PodSpec,
                                V1SecretVolumeSource, V1Volume, V1VolumeMount)
-from test_orchestrator.api import test
 from test_orchestrator.settings import config
 
 namespace = config["K8s"]["NAMESPACE"]
@@ -24,7 +23,7 @@ def pod_builder_pod(project_id: int, image_name: str, tar_path: str) -> V1Pod:
     return V1Pod(
         V1ObjectMeta(name=f"{project_id}-BuildPod", namespace=namespace),
         V1PodSpec(
-            initContainers=[V1Container(
+            init_containers=[V1Container(
                 name="adapter-injector",
                 image="gcr.io/google-containers/busybox:latest",
                 command=["wget"],
@@ -87,10 +86,10 @@ def adapter_init_container(test_id: int):
 
 def config_map(test_id: str, config_data: Dict[str, str]):
     return V1ConfigMap(
-        V1ObjectMeta(name=config_map_name(test_id)),
+        metadata=V1ObjectMeta(name=config_map_name(test_id)),
         data=config_data,
         kind="ConfigMap",
-        api_version="v1",
+        api_version="v1"
     )
 
 
@@ -106,9 +105,9 @@ def pod(
     env = pod_env(tester_command, threshold, result_path)
 
     return V1Pod(
-        V1ObjectMeta(name=pod_name(test_id), namespace=namespace),
-        V1PodSpec(
-            initContainers=[adapter_init_container(test_id)],
+        metadata=V1ObjectMeta(name=pod_name(test_id), namespace=namespace),
+        spec=V1PodSpec(
+            init_containers=[adapter_init_container(test_id)],
             containers=pod_container(
                 test_id, app_image_name, config_path, env, tester_image_name),
             volumes=[

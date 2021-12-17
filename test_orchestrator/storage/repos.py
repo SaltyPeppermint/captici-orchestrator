@@ -29,9 +29,9 @@ def get_repo_path(db: Session, project_id: int) -> str:
 
 def get_all_commits(db: Session, project_id: int) -> List[str]:
     repo = git.Repo(get_repo_path(db, project_id))
-    repo.active_branch.name
+    main_branch = repo.active_branch.name
     commits = []
-    for commit in repo.iter_commits(rev=repo.active_branch.name):
+    for commit in repo.iter_commits(rev=main_branch):
         commits.append(commit)
     return [str(commit.hexsha) for commit in commits]
 

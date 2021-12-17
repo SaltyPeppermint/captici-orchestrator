@@ -15,14 +15,12 @@ def test_commit(
     tests_with_bugs = evaluate.bugs_in_project(db, project_id, req.threshold)
     preceding_test_ids = configs.select_configs(
         db, project_id, req.n_configs, tests_with_bugs, req.selection_strategy)
-    project_name = storage.projects.id2name(db, project_id)
-    app_image_name = k8s.build_commit(
-        project_name, project_id, req.commit_hash)
+    app_image_name = k8s.build_commit(db, project_id, req.commit_hash)
 
     for preceding_test_id in preceding_test_ids:
         config_id = storage.tests.id2config_id(db, test_id)
         test_id = storage.tests.add_empty(
-            db, config_id, req.commit_hash, preceding_test_id, None)
+            db, project_id, config_id, req.commit_hash, preceding_test_id, None)
 
         storage.test_in_test_group.add_test_to_test_group(
             db, test_id, test_group_id)
@@ -41,19 +39,18 @@ def test_whole_project(
     commit_hashs = commits.initial_sample_select(
         db, project_id, req.n_commits)
 
-    project_name = storage.projects.id2name(db, project_id)
     app_image_names = {}
     for commit_hash in commit_hashs:
         app_image_names[commit_hash] = k8s.build_commit(
-            project_name, project_id, commit_hash)
+            db, project_id, commit_hash)
 
-    config_ids = storage.config.project_id2ids(db, project_id)
+    config_ids = storage.tests.project_id2ids(db, project_id)
 
     for config_id in config_ids:
         preceding_test_id = None
         for commit_hash in commit_hashs:
             test_id = storage.tests.add_empty(
-                db, config_id, commit_hash, preceding_test_id, None)
+                db, project_id, config_id, commit_hash, preceding_test_id, None)
             storage.test_in_test_group.add_test_to_test_group(
                 db, test_id, test_group_id)
 
@@ -81,7 +78,7 @@ def report_action(
         preceding_commit_hash = storage.tests.id2commit_hash(db, preceding_id)
         preceding_result = storage.tests.id2result(db, preceding_id)
         if evaluate.bug_in_interval(
-                preceding_commit_hash, preceding_result, commit_hash, result, parser, threshold):
+                db, project_id, preceding_commit_hash, preceding_result, commit_hash, result, parser, threshold):
             spawn_test_between(db, project_id, test_group_id, config_id,
                                preceding_id, preceding_commit_hash, test_id, commit_hash)
 
@@ -91,7 +88,7 @@ def report_action(
         following_commit_hash = storage.tests.id2commit_hash(db, following_id)
         following_result = storage.tests.id2result(db, following_id)
         if evaluate.bug_in_interval(
-                commit_hash, result, following_commit_hash, following_result, parser, threshold):
+                db, project_id, commit_hash, result, following_commit_hash, following_result, parser, threshold):
             spawn_test_between(db, project_id, test_group_id, config_id,
                                test_id, commit_hash, following_id, following_commit_hash)
     return
@@ -121,16 +118,15 @@ def spawn_test_between(
     commit_hash = commits.middle_select(
         db, project_id, preceding_commit_hash, following_commit_hash)
     test_id = storage.tests.add_empty(
-        db, config_id, commit_hash, preceding_id, following_id)
-    storage.test_in_test_groups.add_test_to_test_group(
+        db, project_id, config_id, commit_hash, preceding_id, following_id)
+    storage.test_in_test_group.add_test_to_test_group(
         db, test_id, test_group_id)
 
     # double linked list, redirect pointers
     storage.tests.update_preceding(db, following_id, commit_hash)
     storage.tests.update_following(db, preceding_id, commit_hash)
 
-    project_name = storage.projects.id2name(db, test_id)
-    app_image_name = k8s.build_commit(project_name, project_id, commit_hash)
+    app_image_name = k8s.build_commit(db, project_id, commit_hash)
     k8s.run_container_test(db, project_id, config_id,
                            test_id, test_group_id, app_image_name)
     return

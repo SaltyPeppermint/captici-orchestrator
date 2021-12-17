@@ -1,1 +1,1 @@
-from . import parsing
+from .parsing import result2value

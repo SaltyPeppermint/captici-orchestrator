@@ -1,9 +1,9 @@
-from typing import List, Tuple
+from typing import Tuple
 import sqlalchemy
 
 from sqlalchemy.orm import Session
-from sqlalchemy.sql.expression import delete, select, join
-from test_orchestrator.api.request_bodies import RegisterRequest, Parser
+from sqlalchemy.sql.expression import delete, select
+from test_orchestrator.api.request_bodies import RegisterRequest, ResultParser
 
 from .sql import models
 
@@ -94,8 +94,8 @@ def id2git_info(db: Session, project_id: int) -> Tuple[str, str, str]:
     # return ("github.com/BurntSushi/ripgrep.git", "git", "")
 
 
-def id2parser(db: Session, project_id: int) -> Parser:
+def id2parser(db: Session, project_id: int) -> ResultParser:
     stmt = (select(models.Project.parser_str)
             .where(models.Project.id == project_id))
     parser_str = db.execute(stmt).scalars().one()
-    return Parser(parser_str)
+    return ResultParser(parser_str)

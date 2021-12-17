@@ -1,10 +1,10 @@
 import unittest
-import context
+import context  # pylint: disable=unused-import
 
 
 class TestMain(unittest.TestCase):
     def test_run(self):
-        self.assertTrue(True)
+        self.assertTrue(1 == 1)
 
 
 if __name__ == "__main__":

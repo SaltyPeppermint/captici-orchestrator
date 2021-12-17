@@ -1,6 +1,6 @@
 import time
 
-from kubernetes import config
+from kubernetes import config as kubeconifg
 from kubernetes.client.api import core_v1_api
 from kubernetes.client.configuration import Configuration
 from sqlalchemy.orm import Session
@@ -11,7 +11,7 @@ from . import templates
 
 
 def get_kube_api() -> core_v1_api.CoreV1Api:
-    config.load_kube_config()
+    kubeconifg.load_kube_config()
     try:
         c = Configuration().get_default_copy()
     except AttributeError:
@@ -85,8 +85,9 @@ def await_config_map_manifest(manifest) -> None:
     return
 
 
-def build_commit(project_name: str, project_id: int, commit_hash: str) -> str:
-    tar_path = storage.tars.tar_into(project_id, commit_hash)
+def build_commit(db: Session, project_id: int, commit_hash: str) -> str:
+    project_name = storage.projects.id2name(db, project_id)
+    tar_path = storage.tars.tar_into(db, project_id, commit_hash)
     registry_url = config["Registry"]["url"]
     registry_user = config["Registry"]["user"]
     image_name = f"{registry_url}/{registry_user}/{project_id}-{project_name}:{commit_hash}"
@@ -121,13 +122,12 @@ def run_container_test(
         test_id, config_content)
 
     if(two_container):
-        tester_image_name = storage.projects.id2tester_image(
-            db, project_id)
+        tester_image_name = storage.projects.id2tester_image(db, project_id)
         pod_manifest = templates.pod(
-            test_id, app_image_name, app_image_name, config_path, tester_command, result_path, test_group_id, tester_image_name)
+            test_id, app_image_name, config_path, tester_command, result_path, test_group_id, tester_image_name)
     else:
         pod_manifest = templates.pod(
-            test_id, app_image_name, app_image_name, config_path, tester_command, result_path, test_group_id)
+            test_id, app_image_name, config_path, tester_command, result_path, test_group_id)
 
     execute_config_map_manifest(config_map_manifest)
     await_config_map_manifest(config_map_manifest)

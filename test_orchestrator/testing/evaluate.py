@@ -1,9 +1,8 @@
-import math
 from typing import List, Tuple
 
 from sqlalchemy.orm import Session
 from test_orchestrator import storage
-from test_orchestrator.api.request_bodies import Parser
+from test_orchestrator.api.request_bodies import ResultParser
 from test_orchestrator.api.response_bodies import TestResponse
 
 
@@ -11,7 +10,7 @@ from . import parsing
 
 
 def rel_diff(x: float, y: float) -> float:
-    return math.abs(x - y) / max(x, y)
+    return abs(x - y) / max(x, y)
 
 
 def bugs_in_project(db, project_id, threshold) -> List[int]:
@@ -37,7 +36,7 @@ def bugs_in_project(db, project_id, threshold) -> List[int]:
 
 
 def is_bug_between(
-        parser: Parser,
+        parser: ResultParser,
         threshold: float,
         result_a: str,
         result_b: int) -> bool:
@@ -53,7 +52,8 @@ def get_diffs(db, test_ids_in_group: List[int]) -> List[Tuple[int, float]]:
         if preceding_id:
             test_result = storage.tests.id2result(db, test_id)
             preceding_result = storage.tests.id2result(db, preceding_id)
-            return_dict[test_id] = rel_diff(preceding_result, test_result)
+            return_dict[test_id] = rel_diff(
+                preceding_result, test_result)
         else:
             return_dict[test_id] = None
 
@@ -82,15 +82,17 @@ def testing_report(db, test_group_id) -> TestResponse:
 
 
 def bug_in_interval(
+        db: Session,
+        project_id: int,
         preceding_commit_hash: str,
         preceding_test_result: str,
         following_commit_hash: str,
         following_test_result: str,
-        parser: Parser,
+        parser: ResultParser,
         threshold: float):
 
     parent_relationship = storage.repos.is_parent_commit(
-        preceding_commit_hash, following_commit_hash)
+        db, project_id, preceding_commit_hash, following_commit_hash)
     if not parent_relationship:
         bug_between = is_bug_between(
             parser, threshold, preceding_test_result, following_test_result)

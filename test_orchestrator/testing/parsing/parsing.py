@@ -1,11 +1,10 @@
-from test_orchestrator import storage
-from test_orchestrator.api.request_bodies import Parser
+from test_orchestrator.api.request_bodies import ResultParser
 
 from . import demo
 
 
-def result2value(report: str, type: Parser) -> float:
-    if(type == storage.projects.ProjectType.DEMO):
-        return demo.report2value(report)
+def result2value(report: str, parser_type: ResultParser) -> float:
+    if parser_type == ResultParser.JUNIT:
+        return demo.result2value(report)
     else:
         raise AttributeError("What kind of Project Type are you running?")

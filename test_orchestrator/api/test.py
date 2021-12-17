@@ -1,6 +1,5 @@
 # APIRouter creates path operations for item module
 from fastapi import APIRouter, BackgroundTasks, HTTPException, status
-from fastapi.exceptions import HTTPException
 from fastapi.params import Body, Depends, Query
 from sqlalchemy.orm import Session
 from test_orchestrator import storage, testing
@@ -62,4 +61,4 @@ async def read_test_report(
             detail="Test not ready"
         )
     else:
-        return testing.evaluate.bugs_in_project(db, test_group_id)
+        return testing.evaluate.testing_report(db, test_group_id)

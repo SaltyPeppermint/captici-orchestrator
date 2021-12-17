@@ -79,12 +79,13 @@ def mark_as_degradation(db: Session, test_id: int) -> None:
 
 def add_empty(
         db: Session,
+        project_id: int,
         config_id: int,
         commit_hash: int,
         preceding_test_id: Optional[str],
         following_test_id: Optional[str]) -> int:
 
-    test = models.Test(config_id, commit_hash,
+    test = models.Test(project_id, config_id, commit_hash,
                        preceding_test_id, following_test_id)
     db.add(test)
     db.commit()

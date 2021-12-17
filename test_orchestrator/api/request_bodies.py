@@ -9,7 +9,7 @@ class SelectionStrategy(str, Enum):
     PATH_DISTANCE = "path_distance"
 
 
-class Parser(str, Enum):
+class ResultParser(str, Enum):
     JUNIT = "junit"
 
 
@@ -40,8 +40,8 @@ class RegisterRequest(BaseModel):
                                 description="Command that executes the specified tester.")
     result_path: str = Field(...,
                              description="Path where the report will be generated to upload.")
-    parser: Parser = Field(...,
-                           description="Parser to use to parse the reports.")
+    parser: ResultParser = Field(...,
+                                 description="Parser to use to parse the reports.")
     repo_url: HttpUrl = Field(...,
                               description="URL of the git repo of the project to test. Must be properly formatted URL including http(s)://")
     git_user: str = Field("git",

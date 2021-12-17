@@ -1,6 +1,5 @@
 from fastapi import APIRouter, HTTPException, status
-from fastapi.exceptions import HTTPException
-from fastapi.params import Depends, Path, Query
+from fastapi.params import Depends, Query
 import sqlalchemy
 from sqlalchemy.orm import Session
 from test_orchestrator.storage import projects
@@ -33,7 +32,6 @@ async def delete_project(
     try:
         projects.deleteById(db, project_id)
         return
-    except:
-        sqlalchemy.exc.NoResultFound
+    except sqlalchemy.exc.NoResultFound as no_result:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+            status_code=status.HTTP_404_NOT_FOUND, detail="Project not found") from no_result
