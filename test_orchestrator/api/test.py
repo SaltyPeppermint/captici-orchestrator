@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from test_orchestrator import storage, testing
 from test_orchestrator.storage.sql.database import get_db
 
-from .request_bodies import ProjectTestRequest, CommitTestRequest
+from .request_bodies import CommitTestRequest, ProjectTestRequest
 from .response_bodies import TestResponse
 
 router = APIRouter(
