@@ -1,4 +1,3 @@
-
 import os
 import tarfile
 
@@ -37,8 +36,10 @@ def tar_into(db: Session, project_id: int, commit_hash: str) -> str:
 
     with tarfile.open(tar_path, mode="w:gz") as tar:
         tar.add(
-            repo_path, recursive=True,
-            filter=lambda tarinfo: None if ".git" in tarinfo.name else tarinfo)
+            repo_path,
+            recursive=True,
+            filter=lambda tarinfo: None if ".git" in tarinfo.name else tarinfo,
+        )
 
     repo.git.checkout(main_branch)
     return tar_path

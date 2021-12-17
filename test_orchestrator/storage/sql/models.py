@@ -23,19 +23,20 @@ class Project(Base):
     email = Column(String(256))
 
     def __init__(
-            self,
-            name: str,
-            tester_command: str,
-            result_path: str,
-            parser_str: str,
-            repo_url: str,
-            git_user: str,
-            auth_token: str,
-            main_branch: str,
-            config_path: str,
-            two_container: bool,
-            tester_image: Optional[str],
-            email: Optional[str]):
+        self,
+        name: str,
+        tester_command: str,
+        result_path: str,
+        parser_str: str,
+        repo_url: str,
+        git_user: str,
+        auth_token: str,
+        main_branch: str,
+        config_path: str,
+        two_container: bool,
+        tester_image: Optional[str],
+        email: Optional[str],
+    ):
 
         self.name = name
         self.tester_command = tester_command
@@ -75,11 +76,7 @@ class TestGroup(Base):
     threshold = Column(Float, nullable=False)
     whole_project_test = Column(Boolean(), nullable=False)
 
-    def __init__(
-            self,
-            project_id: int,
-            threshold: float,
-            whole_project_test: bool):
+    def __init__(self, project_id: int, threshold: float, whole_project_test: bool):
 
         self.project_id = project_id
         self.threshold = threshold
@@ -101,12 +98,13 @@ class Test(Base):
     finished = Column(Boolean(False), nullable=False)
 
     def __init__(
-            self,
-            project_id: int,
-            config_id: int,
-            commit_hash: str,
-            preceding_test_id: Optional[int],
-            following_test_id: Optional[int]):
+        self,
+        project_id: int,
+        config_id: int,
+        commit_hash: str,
+        preceding_test_id: Optional[int],
+        following_test_id: Optional[int],
+    ):
 
         self.project_id = project_id
         self.config_id = config_id
@@ -121,9 +119,8 @@ class Test(Base):
 
 
 class TestInTestGroup(Base):
-    __tablename__ = 'test_in_test_group'
-    test_group_id = Column(Integer, ForeignKey(
-        "test_groups.id"), primary_key=True)
+    __tablename__ = "test_in_test_group"
+    test_group_id = Column(Integer, ForeignKey("test_groups.id"), primary_key=True)
     test_id = Column(Integer, ForeignKey("tests.id"), primary_key=True)
 
     def __init__(self, test_group_id: int, test_id: int):

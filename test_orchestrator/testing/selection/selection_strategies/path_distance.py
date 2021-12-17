@@ -21,8 +21,7 @@ def file_path_distance(path1: str, path2: str) -> int:
     return len(arr1) + len(arr2) - 2 * common_prefix_len(arr1, arr2)
 
 
-def commit_distance(
-        commit_files1: List[str], commit_files2: List[str]) -> float:
+def commit_distance(commit_files1: List[str], commit_files2: List[str]) -> float:
 
     path_product = itertools.product(commit_files1, commit_files2)
     path_distances = []
@@ -32,10 +31,8 @@ def commit_distance(
 
 
 def select(
-        db: Session,
-        project_id: int,
-        n_configs: int,
-        tests_with_bugs: List[int]) -> List[Tuple[float, int]]:
+    db: Session, project_id: int, n_configs: int, tests_with_bugs: List[int]
+) -> List[Tuple[float, int]]:
 
     # Need to specify that this only always works against the current HEAD
 
@@ -44,8 +41,7 @@ def select(
     by_distance = {}
     for test_id in tests_with_bugs:
         commit_hash = storage.tests.id2commit_hash(db, test_id)
-        commit_filepaths = storage.repos.get_filepaths(
-            db, project_id, commit_hash)
+        commit_filepaths = storage.repos.get_filepaths(db, project_id, commit_hash)
         distance = commit_distance(head_filepaths, commit_filepaths)
         by_distance[distance] = test_id
 

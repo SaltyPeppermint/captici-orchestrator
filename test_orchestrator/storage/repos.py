@@ -44,10 +44,8 @@ def get_filepaths(db: Session, project_id: int, commit_hash: str) -> List[str]:
 
 
 def is_parent_commit(
-        db: Session,
-        project_id: int,
-        preceding_commit_hash: str,
-        following_commit_hash: str) -> bool:
+    db: Session, project_id: int, preceding_commit_hash: str, following_commit_hash: str
+) -> bool:
 
     repo = git.Repo(get_repo_path(db, project_id))
     right_commit = repo.commit(following_commit_hash)

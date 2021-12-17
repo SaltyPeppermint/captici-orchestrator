@@ -19,13 +19,11 @@ def add(db: Session, project_id: int, content: str) -> int:
 
 
 def id2content(db: Session, config_id: int) -> str:
-    stmt = (select(models.Config.content)
-            .where(models.Config.id == config_id))
+    stmt = select(models.Config.content).where(models.Config.id == config_id)
     return db.execute(stmt).scalars().one()
 
 
 def project_id2ids(db: Session, project_id: int) -> List[int]:
-    stmt = (select(models.Config.id)
-            .where(models.Config.project_id == project_id))
+    stmt = select(models.Config.id).where(models.Config.project_id == project_id)
     with_duplicates = db.execute(stmt).scalars().all()
     return list(set(with_duplicates))
