@@ -1,5 +1,5 @@
 # For more information, please refer to https://aka.ms/vscode-docker-python
-FROM public.ecr.aws/bitnami/python:3.9
+FROM public.ecr.aws/bitnami/python:3.10
 
 EXPOSE 8000
 
@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y git
 COPY requirements.txt .
 RUN python -m pip install -r requirements.txt
 
-RUN useradd -s /bin/bash -u 5678 appuser 
+RUN useradd -s /bin/bash -u 5678 appuser
 
 COPY . /app
 RUN chown -R appuser /app
