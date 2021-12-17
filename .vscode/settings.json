@@ -3,7 +3,10 @@
     "cSpell.words": [
         "autopep",
         "cdpb",
+        "classpath",
+        "dbmdl",
         "dockerconfigjson",
+        "dockerignore",
         "fastapi",
         "hashs",
         "Heinimann",
@@ -16,6 +19,7 @@
         "kubernetes",
         "mypy",
         "perfs",
+        "pycache",
         "pydantic",
         "pyproject",
         "pytest",
@@ -24,6 +28,7 @@
         "sqla",
         "sqlalchemy",
         "starlette",
+        "toolstarget",
         "uvicorn"
     ],
     "files.exclude": {

@@ -1,4 +1,3 @@
-from typing import Optional
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, Sequence, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql.sqltypes import Float
@@ -34,8 +33,8 @@ class Project(Base):
         main_branch: str,
         config_path: str,
         two_container: bool,
-        tester_image: Optional[str],
-        email: Optional[str],
+        tester_image: str | None,
+        email: str | None,
     ):
         self.name = name
         self.tester_command = tester_command
@@ -111,8 +110,8 @@ class Test(Base):
         project_id: int,
         config_id: int,
         commit_hash: str,
-        preceding_test_id: Optional[int],
-        following_test_id: Optional[int],
+        preceding_test_id: int | None,
+        following_test_id: int | None,
     ):
         self.project_id = project_id
         self.config_id = config_id

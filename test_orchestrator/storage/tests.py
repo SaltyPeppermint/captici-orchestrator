@@ -1,6 +1,7 @@
-from typing import List, Optional
-from sqlalchemy.orm import Session
+from typing import List
+
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import select, update
 
 from .sql import models
@@ -79,8 +80,8 @@ def add_empty(
     project_id: int,
     config_id: int,
     commit_hash: str,
-    preceding_test_id: Optional[int],
-    following_test_id: Optional[int],
+    preceding_test_id: int | None,
+    following_test_id: int | None,
 ) -> int:
     test = models.Test(
         project_id, config_id, commit_hash, preceding_test_id, following_test_id

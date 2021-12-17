@@ -105,7 +105,7 @@ def pod(
     tester_command: str,
     result_path: str,
     threshold: float,
-    tester_image_name: Optional[str] = None,
+    tester_image_name: str | None = None,
 ) -> V1Pod:
     env = pod_env(tester_command, threshold, result_path)
     return V1Pod(
