@@ -1,7 +1,7 @@
 from typing import List, Tuple
 
-from sqlalchemy.orm import Session
 from cdpb_test_orchestrator.api.request_bodies import SelectionStrategy
+from sqlalchemy.orm import Session
 
 from .selection_strategies import path_distance
 

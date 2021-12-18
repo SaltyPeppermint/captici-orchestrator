@@ -2,11 +2,11 @@
 # temporarily disabling pydantic mypy checking due to bug
 # https://github.com/samuelcolvin/pydantic/pull/3175#issuecomment-914897604
 # APIRouter creates path operations for item module
+from cdpb_test_orchestrator import storage
+from cdpb_test_orchestrator.storage.sql.database import get_db
 from fastapi import APIRouter, status
 from fastapi.params import Body, Depends, Query
 from sqlalchemy.orm import Session
-from cdpb_test_orchestrator import storage
-from cdpb_test_orchestrator.storage.sql.database import get_db
 
 router = APIRouter(
     prefix="/config",

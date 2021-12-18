@@ -1,8 +1,8 @@
 import math
 from typing import List
 
-from sqlalchemy.orm import Session
 from cdpb_test_orchestrator.storage import repos
+from sqlalchemy.orm import Session
 
 
 def choose_middle(left_bounding_item, right_bounding_item, items):

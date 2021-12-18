@@ -1,8 +1,8 @@
 import os
 import tarfile
 
-from sqlalchemy.orm import Session
 from cdpb_test_orchestrator.settings import config
+from sqlalchemy.orm import Session
 
 from . import projects, repos
 

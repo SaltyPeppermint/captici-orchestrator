@@ -1,10 +1,10 @@
-from sqlalchemy.orm import Session
 from cdpb_test_orchestrator import k8s, storage
 from cdpb_test_orchestrator.api.request_bodies import (
     CommitTestRequest,
     ProjectTestRequest,
 )
 from cdpb_test_orchestrator.cdpb_testing import evaluate
+from sqlalchemy.orm import Session
 
 from .selection import commits, configs
 

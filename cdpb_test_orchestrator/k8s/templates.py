@@ -1,5 +1,6 @@
 from typing import Dict, List, Optional
 
+from cdpb_test_orchestrator.settings import config
 from kubernetes.client import (
     V1ConfigMap,
     V1ConfigMapVolumeSource,
@@ -15,7 +16,6 @@ from kubernetes.client import (
     V1Volume,
     V1VolumeMount,
 )
-from cdpb_test_orchestrator.settings import config
 
 namespace = config["K8s"]["NAMESPACE"]
 adapter_dir = config["Directories"]["adapter_dir"]

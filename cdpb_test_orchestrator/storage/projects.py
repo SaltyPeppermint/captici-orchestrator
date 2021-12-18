@@ -1,10 +1,10 @@
 from typing import Tuple
 
 import sqlalchemy
+from cdpb_test_orchestrator.api.request_bodies import RegisterRequest, ResultParser
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import delete, select
-from cdpb_test_orchestrator.api.request_bodies import RegisterRequest, ResultParser
 
 from .sql import models
 

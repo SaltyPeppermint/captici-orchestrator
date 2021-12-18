@@ -1,9 +1,9 @@
 from typing import Dict, List
 
-from sqlalchemy.orm import Session
 from cdpb_test_orchestrator import storage
 from cdpb_test_orchestrator.api.request_bodies import ResultParser
 from cdpb_test_orchestrator.api.response_bodies import TestResponse
+from sqlalchemy.orm import Session
 
 from . import parsing
 

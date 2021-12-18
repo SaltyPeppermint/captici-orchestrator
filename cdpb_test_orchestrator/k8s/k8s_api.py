@@ -1,11 +1,11 @@
 import time
 
+from cdpb_test_orchestrator import storage
+from cdpb_test_orchestrator.settings import config
 from kubernetes import config as kubeconfig
 from kubernetes.client.api import core_v1_api
 from kubernetes.client.configuration import Configuration
 from sqlalchemy.orm import Session
-from cdpb_test_orchestrator import storage
-from cdpb_test_orchestrator.settings import config
 
 from . import templates
 

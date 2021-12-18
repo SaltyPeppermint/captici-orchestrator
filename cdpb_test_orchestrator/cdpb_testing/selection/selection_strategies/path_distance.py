@@ -1,8 +1,8 @@
 import itertools
 from typing import List, Tuple
 
-from sqlalchemy.orm import Session
 from cdpb_test_orchestrator import storage
+from sqlalchemy.orm import Session
 
 
 def common_prefix_len(arr1: List[str], arr2: List[str]) -> int:
