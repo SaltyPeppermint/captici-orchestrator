@@ -1,4 +1,4 @@
-from cdpb_test_orchestrator.api.request_bodies import ResultParser
+from cdpb_test_orchestrator.data_objects import ResultParser
 
 from . import demo
 

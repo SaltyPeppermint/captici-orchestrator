@@ -141,3 +141,4 @@ cython_debug/
 repos/
 tars/
 secrets/
+**/test_nfs/

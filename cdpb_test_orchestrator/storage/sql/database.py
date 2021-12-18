@@ -1,8 +1,22 @@
 import sqlalchemy as sqla
+from cdpb_test_orchestrator.settings import get_config
 from sqlalchemy.orm import sessionmaker
-from cdpb_test_orchestrator.settings import config
 
 from .models import Base
+
+session_factory = None
+
+
+config = get_config()
+db_type = config["DB"]["type"]
+db_location = config["NFS"]["mount"] + "/sqlite.db"
+print(f"{db_type}://{db_location}")
+engine = sqla.create_engine(
+    f"{db_type}:///{db_location}",
+    echo=True,
+    connect_args={"check_same_thread": False},
+)
+session_factory = sessionmaker(bind=engine, future=True)
 
 
 def init_db():
@@ -10,20 +24,12 @@ def init_db():
 
 
 def get_db():
-    db = SessionLocal()
+    db = session_factory()
     try:
         yield db
     finally:
         db.close()
 
-
-db_type = config["DB"]["type"]
-db_location = config["NFS"]["mount"] + "/sqlite.db"
-print(f"{db_type}://{db_location}")
-engine = sqla.create_engine(
-    f"{db_type}:///{db_location}", echo=True, connect_args={"check_same_thread": False}
-)
-SessionLocal = sessionmaker(bind=engine, future=True)
 
 if __name__ == "__main__":
     init_db()

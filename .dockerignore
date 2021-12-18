@@ -34,3 +34,4 @@ tars
 example.http
 poetry.lock
 pyproject.toml
+**/test_nfs

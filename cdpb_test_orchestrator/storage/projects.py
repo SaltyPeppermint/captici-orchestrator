@@ -1,7 +1,7 @@
 from typing import Tuple
 
 import sqlalchemy
-from cdpb_test_orchestrator.api.request_bodies import RegisterRequest, ResultParser
+from cdpb_test_orchestrator.data_objects import Project, ResultParser
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import delete, select
@@ -9,7 +9,7 @@ from sqlalchemy.sql.expression import delete, select
 from .sql import models
 
 
-def add(db: Session, req: RegisterRequest) -> int:
+def add(db: Session, req: Project) -> int:
     parser_str = req.parser.value
     project = models.Project(
         req.name,
@@ -48,6 +48,12 @@ def deleteById(db: Session, project_id: int) -> bool:
     db.execute(delstmt)
     db.commit()
     return True
+
+
+def id2project(db: Session, project_id: int) -> Project:
+    stmt = select(models.Project).where(models.Project.id == project_id)
+    result = db.execute(stmt).scalars().one()
+    return Project.from_orm(result)
 
 
 def id2name(db: Session, project_id: int) -> str:

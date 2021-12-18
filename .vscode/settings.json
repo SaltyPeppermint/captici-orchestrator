@@ -34,7 +34,9 @@
     ],
     "files.exclude": {
         "**/__pycache__": true,
-        "**/.venv": true
-    },
-    "jupyter.jupyterServerType": "local"
+        "**/.venv": true,
+        "**/.mypy_cache": true,
+        "**/.pytest_cache": true,
+        "**/__init__.py": true
+    }
 }

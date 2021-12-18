@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field
 from pydantic.networks import EmailStr, HttpUrl
@@ -11,6 +11,12 @@ class SelectionStrategy(str, Enum):
 
 class ResultParser(str, Enum):
     JUNIT = "junit"
+
+
+class TestResponse(BaseModel):
+    individual_results: Dict[int, Optional[float]]
+    is_regression: bool
+    regressing_config: Optional[List[int]] = None
 
 
 class CommitTestRequest(BaseModel):
@@ -37,7 +43,10 @@ class ProjectTestRequest(BaseModel):
     # n_configs: int = Field(..., description="n configs to test", gt=0),
 
 
-class RegisterRequest(BaseModel):
+class Project(BaseModel):
+    id: int = Field(
+        None, description="Id of the orm object. Will be nulled regardless."
+    )
     name: str = Field(
         ...,
         description="Name of the project. Maximum of 256 characters",
@@ -56,7 +65,7 @@ class RegisterRequest(BaseModel):
         ...,
         description=(
             "URL of the git repo of the project to test. Must be properly formatted URL"
-            " including http(s)://"
+            " WITH http(s)://"
         ),
     )
     git_user: str = Field(
@@ -97,3 +106,6 @@ class RegisterRequest(BaseModel):
     email: Optional[EmailStr] = Field(
         None, description="Email associated with the project"
     )
+
+    class Config:
+        orm_mode = True

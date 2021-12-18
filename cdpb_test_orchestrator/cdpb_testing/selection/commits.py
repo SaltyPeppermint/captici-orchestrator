@@ -2,7 +2,6 @@ import math
 from typing import List
 
 from cdpb_test_orchestrator.storage import repos
-from sqlalchemy.orm import Session
 
 
 def choose_middle(left_bounding_item, right_bounding_item, items):
@@ -32,18 +31,23 @@ def uniform_choice(commit_hashs: List[str], n_commits: int) -> List[str]:
 
 
 def middle_select(
-    db: Session, project_id: int, preceding_commit_hash: str, following_commit_hash: str
+    project_name: str,
+    project_id: int,
+    preceding_commit_hash: str,
+    following_commit_hash: str,
 ) -> str:
 
-    all_commit_hashs = repos.get_all_commits(db, project_id)
+    all_commit_hashs = repos.get_all_commits(project_name, project_id)
     middle_item = choose_middle(
         preceding_commit_hash, following_commit_hash, all_commit_hashs
     )
     return middle_item
 
 
-def initial_sample_select(db: Session, project_id: int, n_commits: int) -> List[str]:
+def initial_sample_select(
+    project_name: str, project_id: int, n_commits: int
+) -> List[str]:
 
-    all_commit_hashs = repos.get_all_commits(db, project_id)
+    all_commit_hashs = repos.get_all_commits(project_name, project_id)
 
     return uniform_choice(all_commit_hashs, n_commits)

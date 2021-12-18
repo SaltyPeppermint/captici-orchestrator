@@ -1,9 +1,7 @@
 from typing import Dict, List
 
 from cdpb_test_orchestrator import storage
-from cdpb_test_orchestrator.api.request_bodies import ResultParser
-from cdpb_test_orchestrator.api.response_bodies import TestResponse
-from sqlalchemy.orm import Session
+from cdpb_test_orchestrator.data_objects import Project, ResultParser, TestResponse
 
 from . import parsing
 
@@ -91,21 +89,19 @@ def testing_report(db, test_group_id) -> TestResponse:
 
 
 def bug_in_interval(
-    db: Session,
-    project_id: int,
+    project: Project,
     preceding_commit_hash: str,
     preceding_test_result: str,
     following_commit_hash: str,
     following_test_result: str,
-    parser: ResultParser,
     threshold: float,
 ):
     parent_relationship = storage.repos.is_parent_commit(
-        db, project_id, preceding_commit_hash, following_commit_hash
+        project.name, project.id, preceding_commit_hash, following_commit_hash
     )
     if not parent_relationship:
         bug_between = is_bug_between(
-            parser, threshold, preceding_test_result, following_test_result
+            project.parser, threshold, preceding_test_result, following_test_result
         )
         if bug_between and not parent_relationship:
             return True

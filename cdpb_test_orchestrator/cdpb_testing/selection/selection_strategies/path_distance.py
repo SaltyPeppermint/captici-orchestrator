@@ -1,8 +1,8 @@
 import itertools
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 from cdpb_test_orchestrator import storage
-from sqlalchemy.orm import Session
+from cdpb_test_orchestrator.data_objects import Project
 
 
 def common_prefix_len(arr1: List[str], arr2: List[str]) -> int:
@@ -31,17 +31,17 @@ def commit_distance(commit_files1: List[str], commit_files2: List[str]) -> float
 
 
 def select(
-    db: Session, project_id: int, n_configs: int, tests_with_bugs: List[int]
+    project: Project, n_configs: int, bug_dict: Dict[int, str]
 ) -> List[Tuple[float, int]]:
 
     # Need to specify that this only always works against the current HEAD
-
-    head_filepaths = storage.repos.get_filepaths(db, project_id, "HEAD")
+    head_filepaths = storage.repos.get_filepaths(project.name, project.id, "HEAD")
 
     by_distance = {}
-    for test_id in tests_with_bugs:
-        commit_hash = storage.cdpb_tests.id2commit_hash(db, test_id)
-        commit_filepaths = storage.repos.get_filepaths(db, project_id, commit_hash)
+    for test_id, commit_hash in bug_dict.items():
+        commit_filepaths = storage.repos.get_filepaths(
+            project.name, project.id, commit_hash
+        )
         distance = commit_distance(head_filepaths, commit_filepaths)
         by_distance[distance] = test_id
 

@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional
 
-from cdpb_test_orchestrator.settings import config
+from cdpb_test_orchestrator.settings import get_config
 from kubernetes.client import (
     V1ConfigMap,
     V1ConfigMapVolumeSource,
@@ -17,15 +17,29 @@ from kubernetes.client import (
     V1VolumeMount,
 )
 
-namespace = config["K8s"]["NAMESPACE"]
-adapter_dir = config["Directories"]["adapter_dir"]
-adapter_bin = config["Directories"]["adapter_bin"]
-adapter_path = adapter_dir + adapter_bin
-adapter_url = "http://test-orachestrator.svc.cluster.local/internal/adapter"
-sh_cmd = f"'wget -O {adapter_path} {adapter_url} && chmod +x {adapter_path}'"
+
+def get_adapter_dir() -> str:
+    config = get_config()
+    adapter_dir = config["Directories"]["adapter_dir"]
+    return adapter_dir
+
+
+def get_adapter_path() -> str:
+    config = get_config()
+    adapter_dir = get_adapter_dir()
+    adapter_bin = config["Directories"]["adapter_bin"]
+    adapter_path = adapter_dir + adapter_bin
+    return adapter_path
+
+
+def get_sh_cmd() -> str:
+    adapter_path = get_adapter_path()
+    adapter_url = "http://test-orachestrator.svc.cluster.local/internal/adapter"
+    return f"'wget -O {adapter_path} {adapter_url} && chmod +x {adapter_path}'"
 
 
 def pod_builder_pod(project_id: int, image_name: str, tar_path: str) -> V1Pod:
+    config = get_config()
     regcred_vol_name = f"{project_id}-RegcredVol"
     tar_vol_name = f"{project_id}-TarVol"
     context_dir = "/context"
@@ -35,7 +49,9 @@ def pod_builder_pod(project_id: int, image_name: str, tar_path: str) -> V1Pod:
         "--cache=True",
     ]
     return V1Pod(
-        V1ObjectMeta(name=f"{project_id}-BuildPod", namespace=namespace),
+        V1ObjectMeta(
+            name=f"{project_id}-BuildPod", namespace=config["K8s"]["NAMESPACE"]
+        ),
         V1PodSpec(
             init_containers=[
                 V1Container(
@@ -44,7 +60,7 @@ def pod_builder_pod(project_id: int, image_name: str, tar_path: str) -> V1Pod:
                     command=["wget"],
                     args=["-O", "context.tar.gz", tar_path],
                     volume_mounts=[
-                        V1VolumeMount(name=tar_vol_name, mount_path=adapter_dir)
+                        V1VolumeMount(name=tar_vol_name, mount_path=get_adapter_dir())
                     ],
                 )
             ],
@@ -82,9 +98,9 @@ def adapter_init_container(test_id: int):
         name=f"{test_id}-AdapterInjector",
         image="gcr.io/google-containers/busybox:latest",
         command=["sh -c"],
-        args=[sh_cmd],
+        args=[get_sh_cmd()],
         volume_mounts=[
-            V1VolumeMount(name=adapter_vol_name(test_id), mount_path=adapter_dir)
+            V1VolumeMount(name=adapter_vol_name(test_id), mount_path=get_adapter_dir())
         ],
     )
 
@@ -107,9 +123,12 @@ def pod(
     threshold: float,
     tester_image_name: str | None = None,
 ) -> V1Pod:
+    config = get_config()
     env = pod_env(tester_command, threshold, result_path)
     return V1Pod(
-        metadata=V1ObjectMeta(name=pod_name(test_id), namespace=namespace),
+        metadata=V1ObjectMeta(
+            name=pod_name(test_id), namespace=config["K8s"]["NAMESPACE"]
+        ),
         spec=V1PodSpec(
             init_containers=[adapter_init_container(test_id)],
             containers=pod_container(
@@ -142,6 +161,8 @@ def pod_container(
     env: List[V1EnvVar],
     tester_image_name: Optional[str],
 ) -> List[V1Container]:
+    adapter_path = get_adapter_path()
+    adapter_dir = get_adapter_dir()
     if tester_image_name:
         container_list = [
             V1Container(
@@ -156,7 +177,7 @@ def pod_container(
             V1Container(
                 name=f"{test_id}-Tester",
                 image=tester_image_name,
-                command=[adapter_path],
+                command=[get_adapter_path()],
                 env=env,
                 volume_mounts=[
                     V1VolumeMount(

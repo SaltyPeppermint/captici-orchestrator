@@ -1,7 +1,7 @@
 import uvicorn
 
 import cdpb_test_orchestrator.settings
-import cdpb_test_orchestrator.storage.sql.database
+from cdpb_test_orchestrator.storage.sql.database import init_db
 
 
 def start(debug):
@@ -16,8 +16,9 @@ def start(debug):
 
 
 if __name__ == "__main__":
-    Session = cdpb_test_orchestrator.storage.sql.database.init_db()
-    if cdpb_test_orchestrator.settings.debug_env:
+    init_db()
+    config = cdpb_test_orchestrator.settings.get_config()
+    if config["ENV"]["DEBUG"] == "on":
         start(True)
     else:
         start(False)

@@ -1,7 +1,7 @@
 import unittest
 
-from cdpb_test_orchestrator.api.request_bodies import ResultParser
 from cdpb_test_orchestrator.cdpb_testing.parsing import parsing
+from cdpb_test_orchestrator.data_objects import ResultParser
 
 
 class TestMain(unittest.TestCase):
