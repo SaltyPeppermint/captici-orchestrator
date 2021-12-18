@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "test-orchestrator"
+name = "cdpb-test-orchestrator"
 version = "0.1.0"
 description = ""
 authors = ["Nicole Heinimann <nh51siku@studserv.uni-leipzig.de>"]
@@ -28,7 +28,7 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-start = "test_orchestrator.main:start"
+start = "cdpb_test_orchestrator.main:start"
 
 [tool.mypy]
 plugins = ["sqlalchemy.ext.mypy.plugin"]

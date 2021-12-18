@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "/home/nicole/Projects/test-orchestrator/.venv/bin/python",
+    "python.pythonPath": ".venv/bin/python",
     "cSpell.words": [
         "autopep",
         "cdpb",
@@ -17,6 +17,7 @@
         "kube",
         "kubeconfig",
         "kubernetes",
+        "letsencrypt",
         "mypy",
         "perfs",
         "pycache",

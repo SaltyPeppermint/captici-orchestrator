@@ -6,24 +6,9 @@
             "request": "launch",
             "module": "uvicorn",
             "args": [
-                "test_orchestrator.main:app"
+                "cdpb_test_orchestrator.main:app"
             ],
             "jinja": true
-        },
-        {
-            "name": "Docker: Python - Fastapi",
-            "type": "docker",
-            "request": "launch",
-            "preLaunchTask": "docker-run: debug",
-            "python": {
-                "pathMappings": [
-                    {
-                        "localRoot": "${workspaceFolder}",
-                        "remoteRoot": "/app"
-                    }
-                ],
-                "projectType": "fastapi"
-            }
         }
     ]
 }

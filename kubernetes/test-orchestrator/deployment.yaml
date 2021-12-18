@@ -2,19 +2,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: test-orchestrator
+  name: cdpb-test-orchestrator
   namespace: cdpb-tester
   labels:
-    app: test-orchestrator
+    app: cdpb-test-orchestrator
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: test-orchestrator
+      app: cdpb-test-orchestrator
   template:
     metadata:
       labels:
-        app: test-orchestrator
+        app: cdpb-test-orchestrator
     spec:
       volumes:
         - name: nfs-volume
@@ -23,8 +23,8 @@ spec:
             server: oersted.informatik.uni-leipzig.de # Change this!
             path: /mnt/nfs_share
       containers:
-        - name: test-orchestrator
-          image: registry.kube.informatik.uni-leipzig.de/nicole/test-orchestrator:latest
+        - name: cdpb-test-orchestrator
+          image: registry.kube.informatik.uni-leipzig.de/nicole/cdpb-test-orchestrator:latest
           volumeMounts:
             - name: nfs-volume
               mountPath: /var/nfs

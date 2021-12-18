@@ -3,4 +3,4 @@ resources:
   - cert-manager/
   - nginx-ingress/
   - registry/
-  - test-orchestrator/
+  - cdpb-test-orchestrator/

@@ -2,7 +2,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: test-orchestrator
+  name: cdpb-test-orchestrator
   namespace: cdpb-tester
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: "/$1"
@@ -21,20 +21,20 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: test-orchestrator
+                name: cdpb-test-orchestrator
                 port:
                   number: 8080
           - path: /(config(?:/|$).*)
             pathType: Prefix
             backend:
               service:
-                name: test-orchestrator
+                name: cdpb-test-orchestrator
                 port:
                   number: 8080
           - path: /(test(?:/|$).*)
             pathType: Prefix
             backend:
               service:
-                name: test-orchestrator
+                name: cdpb-test-orchestrator
                 port:
                   number: 8080
