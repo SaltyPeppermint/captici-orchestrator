@@ -10,7 +10,6 @@ from kubernetes.client import (
     V1KeyToPath,
     V1ObjectMeta,
     V1Pod,
-    V1PodSecurityContext,
     V1PodSpec,
     V1SecretVolumeSource,
     V1Volume,
@@ -32,10 +31,18 @@ def get_adapter_path() -> str:
     return adapter_path
 
 
+def get_orchestrator_url() -> str:
+    return "cdpb-test-orchestrator.cdpb-tester.svc.cluster.local:8000"
+
+
 def get_sh_cmd() -> str:
     adapter_path = get_adapter_path()
-    adapter_url = "http://test-orachestrator.svc.cluster.local/internal/adapter"
+    adapter_url = get_orchestrator_url() + "/internal/adapter"
     return f"'wget -O {adapter_path} {adapter_url} && chmod +x {adapter_path}'"
+
+
+def get_tar_download_cmd(tar_path: str) -> str:
+    return get_orchestrator_url() + "/internal/tars?tar_path=" + tar_path
 
 
 def pod_builder_pod(project_id: int, image_name: str, tar_path: str) -> V1Pod:
@@ -44,7 +51,7 @@ def pod_builder_pod(project_id: int, image_name: str, tar_path: str) -> V1Pod:
     tar_vol_name = f"tar-vol-{project_id}"
     context_dir = "/context"
     args = [
-        f"--context=tar://{context_dir}/context.tar.gz",
+        f"--context=tar:///{context_dir}/context.tar.gz",
         f"--destination={image_name}",
         "--cache=True",
     ]
@@ -60,9 +67,13 @@ def pod_builder_pod(project_id: int, image_name: str, tar_path: str) -> V1Pod:
                     name="adapter-injector",
                     image="gcr.io/google-containers/busybox:latest",
                     command=["wget"],
-                    args=["-O", "context.tar.gz", tar_path],
+                    args=[
+                        "-O",
+                        f"{context_dir}/context.tar.gz",
+                        get_tar_download_cmd(tar_path),
+                    ],
                     volume_mounts=[
-                        V1VolumeMount(name=tar_vol_name, mount_path=get_adapter_dir())
+                        V1VolumeMount(name=tar_vol_name, mount_path=context_dir)
                     ],
                 )
             ],
@@ -94,7 +105,7 @@ def pod_builder_pod(project_id: int, image_name: str, tar_path: str) -> V1Pod:
                 ),
             ],
             restart_policy="Never",
-            security_context=V1PodSecurityContext(run_as_user=5678, run_as_group=450),
+            # security_context=V1PodSecurityContext(run_as_user=5678, run_as_group=450),
         ),
     )
 
