@@ -9,22 +9,8 @@ from sqlalchemy.sql.expression import delete, select
 from .sql import models
 
 
-def add(db: Session, req: Project) -> int:
-    parser_str = req.parser.value
-    project = models.Project(
-        req.name,
-        req.tester_command,
-        req.result_path,
-        req.repo_url,
-        parser_str,
-        req.git_user,
-        req.auth_token,
-        req.main_branch,
-        req.config_path,
-        req.two_container,
-        req.tester_image,
-        req.email,
-    )
+def add(db: Session, project_to_add: Project) -> int:
+    project = models.Project(project_to_add)
     db.add(project)
     db.commit()
     db.refresh(project)
@@ -96,6 +82,6 @@ def id2git_info(db: Session, project_id: int) -> Tuple[str, str, str]:
 
 
 def id2parser(db: Session, project_id: int) -> ResultParser:
-    stmt = select(models.Project.parser_str).where(models.Project.id == project_id)
-    parser_str = db.execute(stmt).scalars().one()
-    return ResultParser(parser_str)
+    stmt = select(models.Project.parser).where(models.Project.id == project_id)
+    parser = db.execute(stmt).scalars().one()
+    return ResultParser(parser)

@@ -1,3 +1,4 @@
+from cdpb_test_orchestrator import data_objects
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, Sequence, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql.sqltypes import Float
@@ -11,7 +12,7 @@ class Project(Base):
     name = Column(String(256), nullable=False)
     tester_command = Column(String(256), nullable=False)
     result_path = Column(String(256), nullable=False)
-    parser_str = Column(String(256), nullable=False)
+    parser = Column(String(256), nullable=False)
     repo_url = Column(String(256), nullable=False)
     git_user = Column(String(256), nullable=False)
     auth_token = Column(String(256), nullable=False)
@@ -21,33 +22,19 @@ class Project(Base):
     tester_image = Column(String(256))
     email = Column(String(256))
 
-    def __init__(
-        self,
-        name: str,
-        tester_command: str,
-        result_path: str,
-        parser_str: str,
-        repo_url: str,
-        git_user: str,
-        auth_token: str,
-        main_branch: str,
-        config_path: str,
-        two_container: bool,
-        tester_image: str | None,
-        email: str | None,
-    ):
-        self.name = name
-        self.tester_command = tester_command
-        self.result_path = result_path
-        self.parser_str = parser_str
-        self.repo_url = repo_url
-        self.git_user = git_user
-        self.auth_token = auth_token
-        self.main_branch = main_branch
-        self.config_path = config_path
-        self.two_container = two_container
-        self.tester_image = tester_image
-        self.email = email
+    def __init__(self, project: data_objects.Project):
+        self.name = project.name
+        self.tester_command = project.tester_command
+        self.result_path = project.result_path
+        self.parser = project.parser.value
+        self.repo_url = project.repo_url
+        self.git_user = project.git_user
+        self.auth_token = project.auth_token
+        self.main_branch = project.main_branch
+        self.config_path = project.config_path
+        self.two_container = project.two_container
+        self.tester_image = project.tester_image
+        self.email = project.email
 
     def __repr__(self):
         return (

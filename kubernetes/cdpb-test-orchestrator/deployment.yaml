@@ -16,6 +16,10 @@ spec:
       labels:
         app: cdpb-test-orchestrator
     spec:
+      securityContext:
+        runAsUser: 5678
+        runAsGroup: 450
+        #fsGroup: 450
       volumes:
         - name: nfs-volume
           nfs:

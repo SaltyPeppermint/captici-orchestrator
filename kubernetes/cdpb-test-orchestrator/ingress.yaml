@@ -23,18 +23,18 @@ spec:
               service:
                 name: cdpb-test-orchestrator
                 port:
-                  number: 8080
+                  number: 8000
           - path: /(config(?:/|$).*)
             pathType: Prefix
             backend:
               service:
                 name: cdpb-test-orchestrator
                 port:
-                  number: 8080
+                  number: 8000
           - path: /(test(?:/|$).*)
             pathType: Prefix
             backend:
               service:
                 name: cdpb-test-orchestrator
                 port:
-                  number: 8080
+                  number: 8000

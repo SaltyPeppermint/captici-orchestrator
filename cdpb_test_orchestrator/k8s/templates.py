@@ -1,21 +1,11 @@
 from typing import Dict, List, Optional
 
 from cdpb_test_orchestrator.settings import get_config
-from kubernetes.client import (
-    V1ConfigMap,
-    V1ConfigMapVolumeSource,
-    V1Container,
-    V1EmptyDirVolumeSource,
-    V1EnvVar,
-    V1KeyToPath,
-    V1ObjectMeta,
-    V1Pod,
-    V1PodSecurityContext,
-    V1PodSpec,
-    V1SecretVolumeSource,
-    V1Volume,
-    V1VolumeMount,
-)
+from kubernetes.client import (V1ConfigMap, V1ConfigMapVolumeSource,
+                               V1Container, V1EmptyDirVolumeSource, V1EnvVar,
+                               V1KeyToPath, V1ObjectMeta, V1Pod,
+                               V1PodSecurityContext, V1PodSpec,
+                               V1SecretVolumeSource, V1Volume, V1VolumeMount)
 
 
 def get_adapter_dir() -> str:
@@ -88,7 +78,7 @@ def pod_builder_pod(project_id: int, image_name: str, tar_path: str) -> V1Pod:
                 V1Volume(V1EmptyDirVolumeSource(medium="Memory"), name=tar_vol_name),
             ],
             restart_policy="Never",
-            security_context=V1PodSecurityContext(fs_group=450),
+            security_context=V1PodSecurityContext(runAsUser=5678, runAsGroup=450),
         ),
     )
 

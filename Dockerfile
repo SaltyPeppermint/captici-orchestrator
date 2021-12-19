@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y git
 COPY requirements.txt .
 RUN python -m pip install -r requirements.txt
 
-RUN useradd -s /bin/bash -u 5678 appuser
+RUN groupadd -g 450 sws && useradd -s /bin/bash -u 5678 -g 450 appuser
 
 COPY . /app
 RUN chown -R appuser /app

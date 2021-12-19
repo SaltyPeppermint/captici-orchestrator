@@ -16,11 +16,25 @@ router = APIRouter(
 )
 
 
-@router.post("/register", status_code=status.HTTP_200_OK)
-async def register_project(register_req: Project, db: Session = Depends(get_db)):
-    register_req.id = None
-    project_id = projects.add(db, register_req)
+@router.post("/add", status_code=status.HTTP_200_OK)
+async def add_project(project_to_add: Project, db: Session = Depends(get_db)):
+    project_to_add.id = None
+    project_id = projects.add(db, project_to_add)
     return {"project_id": project_id}
+
+
+@router.get("/get", status_code=status.HTTP_200_OK)
+async def get_project(
+    project_id: int = Query(..., title="Id of the project to get", gt=0),
+    db: Session = Depends(get_db),
+):
+    try:
+        project = projects.id2project(db, project_id)
+        return project
+    except sqlalchemy.exc.NoResultFound as no_result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Project not found"
+        ) from no_result
 
 
 @router.delete("/delete", status_code=status.HTTP_200_OK)
