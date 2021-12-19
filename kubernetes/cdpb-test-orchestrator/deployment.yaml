@@ -20,8 +20,9 @@ spec:
         - name: nfs-volume
           nfs:
             # URL for the NFS server
-            server: oersted.informatik.uni-leipzig.de # Change this!
-            path: /mnt/nfs_share
+            server: oersted.informatik.uni-leipzig.de
+            # Path of the NFS share
+            path: /raid/kube_storage
       containers:
         - name: cdpb-test-orchestrator
           image: registry.kube.informatik.uni-leipzig.de/nicole/cdpb-test-orchestrator:latest
