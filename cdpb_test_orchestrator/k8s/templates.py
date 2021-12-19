@@ -1,11 +1,21 @@
 from typing import Dict, List, Optional
 
 from cdpb_test_orchestrator.settings import get_config
-from kubernetes.client import (V1ConfigMap, V1ConfigMapVolumeSource,
-                               V1Container, V1EmptyDirVolumeSource, V1EnvVar,
-                               V1KeyToPath, V1ObjectMeta, V1Pod,
-                               V1PodSecurityContext, V1PodSpec,
-                               V1SecretVolumeSource, V1Volume, V1VolumeMount)
+from kubernetes.client import (
+    V1ConfigMap,
+    V1ConfigMapVolumeSource,
+    V1Container,
+    V1EmptyDirVolumeSource,
+    V1EnvVar,
+    V1KeyToPath,
+    V1ObjectMeta,
+    V1Pod,
+    V1PodSecurityContext,
+    V1PodSpec,
+    V1SecretVolumeSource,
+    V1Volume,
+    V1VolumeMount,
+)
 
 
 def get_adapter_dir() -> str:
@@ -30,8 +40,8 @@ def get_sh_cmd() -> str:
 
 def pod_builder_pod(project_id: int, image_name: str, tar_path: str) -> V1Pod:
     config = get_config()
-    regcred_vol_name = f"{project_id}-RegcredVol"
-    tar_vol_name = f"{project_id}-TarVol"
+    regcred_vol_name = f"regcred-vol-{project_id}"
+    tar_vol_name = f"tar-vol-{project_id}"
     context_dir = "/context"
     args = [
         f"--context=tar://{context_dir}/context.tar.gz",
@@ -39,10 +49,12 @@ def pod_builder_pod(project_id: int, image_name: str, tar_path: str) -> V1Pod:
         "--cache=True",
     ]
     return V1Pod(
-        V1ObjectMeta(
-            name=f"{project_id}-BuildPod", namespace=config["K8s"]["NAMESPACE"]
+        kind="Pod",
+        api_version="v1",
+        metadata=V1ObjectMeta(
+            name=f"build-pod-{project_id}", namespace=config["K8s"]["NAMESPACE"]
         ),
-        V1PodSpec(
+        spec=V1PodSpec(
             init_containers=[
                 V1Container(
                     name="adapter-injector",
@@ -56,7 +68,7 @@ def pod_builder_pod(project_id: int, image_name: str, tar_path: str) -> V1Pod:
             ],
             containers=[
                 V1Container(
-                    name=f"{project_id}-Kaniko",
+                    name=f"kaniko-{project_id}",
                     image="gcr.io/kaniko-project/executor:latest",
                     args=args,
                     volume_mounts=[
@@ -69,23 +81,27 @@ def pod_builder_pod(project_id: int, image_name: str, tar_path: str) -> V1Pod:
             ],
             volumes=[
                 V1Volume(
-                    V1SecretVolumeSource(
+                    secret=V1SecretVolumeSource(
                         secret_name="regcred",
-                        items=V1KeyToPath(path="config.json", key=".dockerconfigjson"),
+                        items=[
+                            V1KeyToPath(path="config.json", key=".dockerconfigjson")
+                        ],
                     ),
                     name=regcred_vol_name,
                 ),
-                V1Volume(V1EmptyDirVolumeSource(medium="Memory"), name=tar_vol_name),
+                V1Volume(
+                    empty_dir=V1EmptyDirVolumeSource(medium="Memory"), name=tar_vol_name
+                ),
             ],
             restart_policy="Never",
-            security_context=V1PodSecurityContext(runAsUser=5678, runAsGroup=450),
+            security_context=V1PodSecurityContext(run_as_user=5678, run_as_group=450),
         ),
     )
 
 
 def adapter_init_container(test_id: int):
     return V1Container(
-        name=f"{test_id}-AdapterInjector",
+        name=f"adapter-injector-{test_id}",
         image="gcr.io/google-containers/busybox:latest",
         command=["sh -c"],
         args=[get_sh_cmd()],
@@ -116,6 +132,8 @@ def pod(
     config = get_config()
     env = pod_env(tester_command, threshold, result_path)
     return V1Pod(
+        kind="Pod",
+        api_version="v1",
         metadata=V1ObjectMeta(
             name=pod_name(test_id), namespace=config["K8s"]["NAMESPACE"]
         ),
@@ -126,11 +144,11 @@ def pod(
             ),
             volumes=[
                 V1Volume(
-                    V1ConfigMapVolumeSource(name=config_map_name(test_id)),
+                    config_map=V1ConfigMapVolumeSource(name=config_map_name(test_id)),
                     name=config_vol_name(test_id),
                 ),
                 V1Volume(
-                    V1EmptyDirVolumeSource(medium="Memory"),
+                    empty_dir=V1EmptyDirVolumeSource(medium="Memory"),
                     name=adapter_vol_name(test_id),
                 ),
             ],
@@ -139,8 +157,6 @@ def pod(
             #    fs_group=450
             # )
         ),
-        kind="Pod",
-        api_version="v1",
     )
 
 
@@ -156,7 +172,7 @@ def pod_container(
     if tester_image_name:
         container_list = [
             V1Container(
-                name=f"{test_id}-App",
+                name=f"app-{test_id}",
                 image=app_image_name,
                 volume_mounts=[
                     V1VolumeMount(
@@ -165,7 +181,7 @@ def pod_container(
                 ],
             ),
             V1Container(
-                name=f"{test_id}-Tester",
+                name=f"tester-{test_id}",
                 image=tester_image_name,
                 command=[get_adapter_path()],
                 env=env,
@@ -179,7 +195,7 @@ def pod_container(
     else:
         container_list = [
             V1Container(
-                name=f"{test_id}-Combined",
+                name=f"combined-{test_id}",
                 image=app_image_name,
                 command=[adapter_path],
                 env=env,
@@ -205,16 +221,16 @@ def pod_env(tester_command: str, threshold: float, result_path: str):
 
 
 def pod_name(test_id: int) -> str:
-    return f"{test_id}-Pod"
+    return f"pod-{test_id}"
 
 
 def adapter_vol_name(test_id: int) -> str:
-    return f"{test_id}-AdapterVol"
+    return f"adapter-vol-{test_id}"
 
 
 def config_vol_name(test_id: int) -> str:
-    return f"{test_id}-ConfigVol"
+    return f"config-vol-{test_id}"
 
 
 def config_map_name(test_id: int) -> str:
-    return f"{test_id}-ConfigMap"
+    return f"config-map-{test_id}"

@@ -6,6 +6,8 @@ from cdpb_test_orchestrator.settings import get_config
 from kubernetes import config as kubeconfig
 from kubernetes.client.api import core_v1_api
 from kubernetes.client.configuration import Configuration
+from kubernetes.client.models.v1_config_map import V1ConfigMap
+from kubernetes.client.models.v1_pod import V1Pod
 
 from . import templates
 
@@ -22,10 +24,10 @@ def get_kube_api() -> core_v1_api.CoreV1Api:
     return core_v1
 
 
-def execute_pod_manifest(manifest) -> None:
+def execute_pod_manifest(manifest: V1Pod) -> None:
     api = get_kube_api()
 
-    name = manifest["metadata"]["name"]
+    name = manifest.metadata
     config = get_config()
     namespace = config["K8s"]["namespace"]
     resp = None
@@ -40,10 +42,10 @@ def execute_pod_manifest(manifest) -> None:
     return
 
 
-def await_pod_manifest(manifest) -> None:
+def await_pod_manifest(manifest: V1Pod) -> None:
     api = get_kube_api()
 
-    name = manifest["metadata"]["name"]
+    name = manifest.metadata.name
     config = get_config()
     namespace = config["K8s"]["namespace"]
     resp = None
@@ -56,10 +58,10 @@ def await_pod_manifest(manifest) -> None:
     return
 
 
-def execute_config_map_manifest(manifest) -> None:
+def execute_config_map_manifest(manifest: V1ConfigMap) -> None:
     api = get_kube_api()
 
-    name = manifest["metadata"]["name"]
+    name = manifest.metadata.name
     config = get_config()
     namespace = config["K8s"]["namespace"]
     resp = None
@@ -74,10 +76,10 @@ def execute_config_map_manifest(manifest) -> None:
     return
 
 
-def await_config_map_manifest(manifest) -> None:
+def await_config_map_manifest(manifest: V1ConfigMap) -> None:
     api = get_kube_api()
 
-    name = manifest["metadata"]["name"]
+    name = manifest.metadata.name
     config = get_config()
     namespace = config["K8s"]["namespace"]
     resp = None

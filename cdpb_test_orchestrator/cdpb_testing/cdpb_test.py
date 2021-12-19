@@ -46,9 +46,7 @@ def test_whole_project(
     db: Session, project_id: int, test_group_id: int, req: ProjectTestRequest
 ) -> None:
     project = storage.projects.id2project(db, project_id)
-    commit_hashs = commits.initial_sample_select(
-        project.name, project_id, req.n_commits
-    )
+    commit_hashs = commits.initial_sample_select(project, req.n_commits)
 
     app_image_names = {}
     for commit_hash in commit_hashs:
@@ -159,7 +157,7 @@ def spawn_test_between(
 ) -> None:
     # irrelevant if preceding or following, both have same id
     commit_hash = commits.middle_select(
-        project.name, project.id, preceding_commit_hash, following_commit_hash
+        project, preceding_commit_hash, following_commit_hash
     )
     test_id = storage.cdpb_tests.add_empty(
         db, project.id, config_id, commit_hash, preceding_id, following_id

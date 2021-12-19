@@ -1,6 +1,7 @@
 import math
 from typing import List
 
+from cdpb_test_orchestrator.data_objects import Project
 from cdpb_test_orchestrator.storage import repos
 
 
@@ -31,23 +32,20 @@ def uniform_choice(commit_hashs: List[str], n_commits: int) -> List[str]:
 
 
 def middle_select(
-    project_name: str,
-    project_id: int,
+    project: Project,
     preceding_commit_hash: str,
     following_commit_hash: str,
 ) -> str:
 
-    all_commit_hashs = repos.get_all_commits(project_name, project_id)
+    all_commit_hashs = repos.get_all_commits(project)
     middle_item = choose_middle(
         preceding_commit_hash, following_commit_hash, all_commit_hashs
     )
     return middle_item
 
 
-def initial_sample_select(
-    project_name: str, project_id: int, n_commits: int
-) -> List[str]:
+def initial_sample_select(project: Project, n_commits: int) -> List[str]:
 
-    all_commit_hashs = repos.get_all_commits(project_name, project_id)
+    all_commit_hashs = repos.get_all_commits(project)
 
     return uniform_choice(all_commit_hashs, n_commits)

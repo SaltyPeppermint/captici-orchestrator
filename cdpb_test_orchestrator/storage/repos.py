@@ -1,7 +1,11 @@
+import os
 import re
+
+# from pathlib import Path
 from typing import List
 
 import git
+from cdpb_test_orchestrator.data_objects import Project
 from cdpb_test_orchestrator.settings import get_config
 
 
@@ -15,7 +19,20 @@ def auth_info2clone_url(repo_url: str, git_user: str, auth_token: str) -> str:
 
 
 def clone_repo(clone_url: str, repo_path: str) -> git.Repo:
+    # Path(repo_path).mkdir(parents=True, exist_ok=True)
     repo = git.Repo.clone_from(clone_url, repo_path)
+    return repo
+
+
+def get_repo(project: Project):
+    repo_path = get_repo_path(project.name, project.id)
+    if not os.path.exists(repo_path):
+        clone_url = auth_info2clone_url(
+            project.repo_url, project.git_user, project.auth_token
+        )
+        repo = clone_repo(clone_url, repo_path)
+    else:
+        repo = update_repo(repo_path)
     return repo
 
 
@@ -32,8 +49,8 @@ def get_repo_path(project_name: str, project_id: int) -> str:
     return f"{nfs_mount}{repos_dir}/{project_id}-{project_name}"
 
 
-def get_all_commits(project_name: str, project_id: int) -> List[str]:
-    repo = git.Repo(get_repo_path(project_name, project_id))
+def get_all_commits(project: Project) -> List[str]:
+    repo = get_repo(project)
     main_branch = repo.active_branch.name
     commits = []
     for commit in repo.iter_commits(rev=main_branch):
