@@ -46,11 +46,11 @@ def get_tar_download_cmd(tar_path: str) -> str:
 
 
 def pod_builder_pod(
-    project_id: int, image_name: str, tar_path: str, dockerfile_path: str
+    build_id: str, image_name: str, tar_path: str, dockerfile_path: str
 ) -> V1Pod:
     config = get_config()
-    regcred_vol_name = f"regcred-vol-{project_id}"
-    tar_vol_name = f"tar-vol-{project_id}"
+    regcred_vol_name = f"regcred-vol-{build_id}"
+    tar_vol_name = f"tar-vol-{build_id}"
     context_dir = "/context"
     args = [
         f"--context=tar:///{context_dir}/context.tar.gz",
@@ -62,7 +62,7 @@ def pod_builder_pod(
         kind="Pod",
         api_version="v1",
         metadata=V1ObjectMeta(
-            name=f"build-pod-{project_id}", namespace=config["K8s"]["NAMESPACE"]
+            name=f"build-pod-{build_id}", namespace=config["K8s"]["NAMESPACE"]
         ),
         spec=V1PodSpec(
             init_containers=[
@@ -82,7 +82,7 @@ def pod_builder_pod(
             ],
             containers=[
                 V1Container(
-                    name=f"kaniko-{project_id}",
+                    name=f"kaniko-{build_id}",
                     image="gcr.io/kaniko-project/executor:latest",
                     args=args,
                     volume_mounts=[

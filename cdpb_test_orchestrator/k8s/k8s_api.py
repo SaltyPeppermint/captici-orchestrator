@@ -1,6 +1,5 @@
 import time
 
-from cdpb_test_orchestrator import storage
 from cdpb_test_orchestrator.data_objects import Project
 from cdpb_test_orchestrator.settings import get_config
 from kubernetes import config as kubeconfig
@@ -47,19 +46,21 @@ def execute_pod_manifest(manifest: V1Pod) -> None:
     return
 
 
-def await_pod_manifest(manifest: V1Pod) -> None:
+def execute_build_pod_manifest(manifest: V1Pod) -> None:
     api = get_kube_api()
 
-    name = manifest.metadata.name
+    name = manifest.metadata
     config = get_config()
     namespace = config["K8s"]["namespace"]
     resp = None
+
+    resp = api.create_namespaced_pod(body=manifest, namespace=namespace)
     while True:
         resp = api.read_namespaced_pod(name=name, namespace=namespace)
         if resp.status.phase != "Succeeded":
             break
         time.sleep(1)
-    print(f"{name} succeeded.")
+    print(f"{name} scheduled.")
     return
 
 
@@ -69,32 +70,8 @@ def execute_config_map_manifest(manifest: V1ConfigMap) -> None:
     name = manifest.metadata.name
     config = get_config()
     namespace = config["K8s"]["namespace"]
-    resp = None
-
-    resp = api.create_namespaced_config_map(body=manifest, namespace=namespace)
-    while True:
-        resp = api.read_namespaced_config_map(name=name, namespace=namespace)
-        if resp.status.phase != "Pending":
-            break
-        time.sleep(1)
+    api.create_namespaced_config_map(body=manifest, namespace=namespace)
     print(f"{name} scheduled.")
-    return
-
-
-def await_config_map_manifest(manifest: V1ConfigMap) -> None:
-    api = get_kube_api()
-
-    name = manifest.metadata.name
-    config = get_config()
-    namespace = config["K8s"]["namespace"]
-    resp = None
-
-    while True:
-        resp = api.read_namespaced_config_map(name=name, namespace=namespace)
-        if resp.status.phase != "Succeeded":
-            break
-        time.sleep(1)
-    print(f"{name} succeeded.")
     return
 
 
@@ -105,21 +82,13 @@ def build_commit(
     reg_url = config["Registry"]["url"]
     reg_user = config["Registry"]["user"]
     image_name = f"{reg_url}/{reg_user}/{project_id}:{commit_hash}"
+    build_id = f"{project_id}-{commit_hash}"
 
     pod_manifest = templates.pod_builder_pod(
-        project_id, image_name, tar_path, dockerfile_path
+        build_id, image_name, tar_path, dockerfile_path
     )
-    execute_pod_manifest(pod_manifest)
-    await_pod_manifest(pod_manifest)
+    execute_build_pod_manifest(pod_manifest)
     return image_name
-
-
-def get_project_meta(db, project_id):
-    config_path = storage.projects.id2config_path(db, project_id)
-    tester_command = storage.projects.id2tester_command(db, project_id)
-    result_path = storage.projects.id2result_path(db, project_id)
-    is_two_container = storage.projects.id2is_two_container(db, project_id)
-    return config_path, tester_command, result_path, is_two_container
 
 
 def run_test(
@@ -132,6 +101,7 @@ def run_test(
     config_file, config_folder = project.config_path.rsplit("/", 1)
 
     config_map_manifest = templates.config_map(test_id, {config_file: config_content})
+    execute_config_map_manifest(config_map_manifest)
 
     if project.two_container:
         pod_manifest = templates.pod(
@@ -152,8 +122,6 @@ def run_test(
             project.result_path,
             test_group_id,
         )
-    execute_config_map_manifest(config_map_manifest)
-    await_config_map_manifest(config_map_manifest)
 
     execute_pod_manifest(pod_manifest)
     return
