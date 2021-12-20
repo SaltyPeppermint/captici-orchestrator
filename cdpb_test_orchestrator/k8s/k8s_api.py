@@ -1,4 +1,5 @@
 import logging
+from typing import Dict, List
 
 from cdpb_test_orchestrator import settings
 from cdpb_test_orchestrator.data_objects import Project
@@ -40,36 +41,70 @@ def _get_batch_api() -> BatchV1Api:
     return batch_v1
 
 
-def execute_build_job(manifest: V1Job) -> None:
-    api = _get_batch_api()
-    name = manifest.metadata
-    namespace = settings.namespace()
-    api.create_namespaced_job(body=manifest, namespace=namespace)
-
+def _await_build_jobs(api: BatchV1Api, namespace: str, manifests: List[V1Job]) -> None:
+    names = [manifest.metadata.name for manifest in manifests]
     w = watch.Watch()
     for event in w.stream(api.list_namespaced_job, namespace=namespace):
         logger.info(
             f"Build Job: {event['object'].metadata.name} "
             f"{event['object'].status.succeeded} succeeded."
         )
-        if event["object"].metadata.name == name:
+        if event["object"].metadata.name in names:
             if event["object"].status.succeeded == 1:
-                w.stop()
-                logger.info(f"{name} finished.")
-                return
+                logger.info(f"{event['object'].metadata.name} finished.")
+                names.remove(event["object"].metadata.name)
+        if names == []:
+            w.stop()
+            break
+    return
 
 
-def build_commit(
-    tar_path: str, project_id: int, commit_hash: str, dockerfile_path: str
-) -> str:
-    reg_url = settings.reg_url()
-    reg_user = settings.reg_user()
-    image_name = f"{reg_url}/{reg_user}/{project_id}:{commit_hash}"
-    build_id = f"{project_id}-{commit_hash}"
+def build_commit(tar_path: str, project: Project, commit_hash: str) -> str:
+    api = _get_batch_api()
+    namespace = settings.namespace()
+    image_name = (
+        f"{settings.reg_url()}/{settings.reg_user()}/{project.id}:{commit_hash}"
+    )
+    build_id = f"{project.id}-{commit_hash}"
 
-    pod_manifest = templates.build_job(build_id, image_name, tar_path, dockerfile_path)
-    execute_build_job(pod_manifest)
+    manifest = templates.build_job(
+        build_id, image_name, tar_path, project.dockerfile_path
+    )
+    api.create_namespaced_job(body=manifest, namespace=namespace)
+
+    _await_build_jobs(api, namespace, [manifest])
     return image_name
+
+
+def build_commits(
+    project_id: int,
+    project: Project,
+    tar_paths: Dict[str, str],
+) -> Dict[str, str]:
+    api = _get_batch_api()
+    namespace = settings.namespace()
+
+    app_image_names = {}
+    manifests = []
+    for commit_hash, tar_path in tar_paths.items():
+        image_name = (
+            f"{settings.reg_url()}/{settings.reg_user()}/{project_id}:{commit_hash}"
+        )
+        build_id = f"{project_id}-{commit_hash}"
+        manifest = templates.build_job(
+            build_id, image_name, tar_path, project.dockerfile_path
+        )
+        api.create_namespaced_job(body=manifest, namespace=namespace)
+        manifests.append(manifest)
+        app_image_names[commit_hash] = image_name
+
+    logger.info(
+        f"Built images of commits {tar_paths} for initial test of {project_id}."
+    )
+    for manifest in manifests:
+        _await_build_jobs(api, namespace, manifests)
+
+    return app_image_names
 
 
 def _execute_config_map(manifest: V1ConfigMap) -> None:
@@ -85,12 +120,13 @@ def _execute_config_map(manifest: V1ConfigMap) -> None:
             if event["type"] == "ADDED":
                 w.stop()
                 logger.info(f"{name} created.")
-                return
+                break
+    return
 
 
 def _execute_test_job(manifest: V1Job) -> None:
     api = _get_batch_api()
-    name = manifest.metadata
+    name = manifest.metadata.name
     namespace = settings.namespace()
     api.create_namespaced_job(body=manifest, namespace=namespace)
     w = watch.Watch()
@@ -104,7 +140,8 @@ def _execute_test_job(manifest: V1Job) -> None:
             if event["object"].status.active == 1:
                 w.stop()
                 logger.info(f"{name} started.")
-                return
+                break
+    return
 
 
 def run_test(

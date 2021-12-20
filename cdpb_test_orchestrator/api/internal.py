@@ -16,12 +16,12 @@ router = APIRouter(
 
 
 @router.get("/adapter")
-async def get_adapter():
+def get_adapter():
     return FileResponse("static/performance-test-adapter")
 
 
 @router.post("/results", status_code=status.HTTP_200_OK)
-async def add_result(
+def add_result(
     background_tasks: BackgroundTasks,
     test_id: int = Query(..., title="Id of the test to add to", gt=0),
     test_group_id: int = Query(..., title="Id of the test group", gt=0),
@@ -41,7 +41,5 @@ async def add_result(
 
 
 @router.get("/tars", status_code=status.HTTP_200_OK)
-async def request_tar(
-    tar_path: str = Query(..., description="Tar_Path", max_length=65536)
-):
+def request_tar(tar_path: str = Query(..., description="Tar_Path", max_length=65536)):
     return FileResponse(tar_path)

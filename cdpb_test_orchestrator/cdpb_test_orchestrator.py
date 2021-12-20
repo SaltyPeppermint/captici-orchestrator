@@ -19,12 +19,21 @@ def start():
     init_db()
     is_debug = settings.is_debug()
     "Launched with `poetry run start` at root level"
-    uvicorn.run(
-        "cdpb_test_orchestrator.cdpb_test_orchestrator:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=is_debug,
-    )
+    if is_debug:
+        uvicorn.run(
+            "cdpb_test_orchestrator.cdpb_test_orchestrator:app",
+            host="0.0.0.0",
+            port=8000,
+            reload=True,
+        )
+    else:
+        uvicorn.run(
+            "cdpb_test_orchestrator.cdpb_test_orchestrator:app",
+            host="0.0.0.0",
+            port=8000,
+            reload=False,
+        )
+
     return
 
 
