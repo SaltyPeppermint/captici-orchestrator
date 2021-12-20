@@ -19,7 +19,6 @@ RUN python -m pip install -r requirements.txt
 RUN groupadd -g 450 sws && useradd -s /bin/bash -u 5678 -g 450 appuser
 
 COPY static /app/static
-COPY config /app/config
 COPY cdpb_test_orchestrator /app/cdpb_test_orchestrator
 RUN chown -R appuser /app
 
