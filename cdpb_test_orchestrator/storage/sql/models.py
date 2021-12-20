@@ -17,6 +17,7 @@ class Project(Base):
     git_user = Column(String(256), nullable=False)
     auth_token = Column(String(256), nullable=False)
     main_branch = Column(String(256), nullable=False)
+    dockerfile_path = Column(String(256), nullable=False)
     config_path = Column(String(256), nullable=False)
     two_container = Column(Boolean(), nullable=False)
     tester_image = Column(String(256))
@@ -31,6 +32,7 @@ class Project(Base):
         self.git_user = project.git_user
         self.auth_token = project.auth_token
         self.main_branch = project.main_branch
+        self.dockerfile_path = project.dockerfile_path
         self.config_path = project.config_path
         self.two_container = project.two_container
         self.tester_image = project.tester_image

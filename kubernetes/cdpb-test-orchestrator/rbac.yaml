@@ -1,0 +1,30 @@
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: cdpb-test-orchestrator
+  namespace: cdpb-tester
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs:
+      ["create", "get", "delete", "list", "update", "edit", "watch", "exec"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cdpb-test-orchestrator
+  namespace: cdpb-tester
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: cdpb-test-orchestrator
+  namespace: cdpb-tester
+subjects:
+  - kind: ServiceAccount
+    name: cdpb-test-orchestrator
+    namespace: cdpb-tester
+roleRef:
+  kind: Role
+  name: cdpb-test-orchestrator
+  apiGroup: rbac.authorization.k8s.io

@@ -45,7 +45,9 @@ def get_tar_download_cmd(tar_path: str) -> str:
     return get_orchestrator_url() + "/internal/tars?tar_path=" + tar_path
 
 
-def pod_builder_pod(project_id: int, image_name: str, tar_path: str) -> V1Pod:
+def pod_builder_pod(
+    project_id: int, image_name: str, tar_path: str, dockerfile_path: str
+) -> V1Pod:
     config = get_config()
     regcred_vol_name = f"regcred-vol-{project_id}"
     tar_vol_name = f"tar-vol-{project_id}"
@@ -53,6 +55,7 @@ def pod_builder_pod(project_id: int, image_name: str, tar_path: str) -> V1Pod:
     args = [
         f"--context=tar:///{context_dir}/context.tar.gz",
         f"--destination={image_name}",
+        f"--dockerfile={dockerfile_path}",
         "--cache=True",
     ]
     return V1Pod(

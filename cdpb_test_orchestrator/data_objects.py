@@ -81,11 +81,11 @@ class Project(BaseModel):
         ...,
         description=(
             "Auth token that allows pull access to the repository. Must consist be"
-            " hexadecimal string of length 32."
+            " hexadecimal string with minlength 8 and maxlength 32."
         ),
-        min_length=32,
+        min_length=8,
         max_length=32,
-        regex=r"[0-9A-Fa-f]+",
+        regex=r"[0-9A-Za-z]+",
     )
     main_branch: str = Field(
         "main",
@@ -95,6 +95,10 @@ class Project(BaseModel):
         ),
         max_length=32,
         regex=r"(\w|-)+",
+    )
+    dockerfile_path: str = Field(
+        ...,
+        description="Path where the report will be generated to upload.",
     )
     config_path: str = Field(
         ..., description="Mount point of the configuration file. Use Unix Path."

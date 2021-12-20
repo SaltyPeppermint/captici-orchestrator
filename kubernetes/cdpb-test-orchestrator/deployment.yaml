@@ -16,6 +16,7 @@ spec:
       labels:
         app: cdpb-test-orchestrator
     spec:
+      serviceAccountName: cdpb-test-orchestrator
       securityContext:
         runAsUser: 5678
         runAsGroup: 450

@@ -13,13 +13,18 @@ from . import templates
 
 
 def get_kube_api() -> core_v1_api.CoreV1Api:
-    kubeconfig.load_kube_config()
-    try:
-        c = Configuration().get_default_copy()
-    except AttributeError:
-        c = Configuration()
-        c.assert_hostname = False
-    Configuration.set_default(c)
+    config = get_config()
+    if config["ENV"]["DEBUG"] == "on":
+        kubeconfig.load_kube_config()
+        try:
+            c = Configuration().get_default_copy()
+        except AttributeError:
+            c = Configuration()
+            c.assert_hostname = False
+        Configuration.set_default(c)
+
+    else:
+        kubeconfig.load_incluster_config()
     core_v1 = core_v1_api.CoreV1Api()
     return core_v1
 
@@ -93,13 +98,17 @@ def await_config_map_manifest(manifest: V1ConfigMap) -> None:
     return
 
 
-def build_commit(tar_path: str, project_id: int, commit_hash: str) -> str:
+def build_commit(
+    tar_path: str, project_id: int, commit_hash: str, dockerfile_path: str
+) -> str:
     config = get_config()
     reg_url = config["Registry"]["url"]
     reg_user = config["Registry"]["user"]
     image_name = f"{reg_url}/{reg_user}/{project_id}:{commit_hash}"
 
-    pod_manifest = templates.pod_builder_pod(project_id, image_name, tar_path)
+    pod_manifest = templates.pod_builder_pod(
+        project_id, image_name, tar_path, dockerfile_path
+    )
     execute_pod_manifest(pod_manifest)
     await_pod_manifest(pod_manifest)
     return image_name

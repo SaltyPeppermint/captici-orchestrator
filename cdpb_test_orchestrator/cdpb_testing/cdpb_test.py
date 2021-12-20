@@ -19,7 +19,9 @@ def test_commit(
     tests_with_bugs = evaluate.bugs_in_project(db, project_id, req.threshold)
 
     tar_path = storage.tars.tar_into(project, req.commit_hash)
-    app_image_name = k8s.build_commit(tar_path, project_id, req.commit_hash)
+    app_image_name = k8s.build_commit(
+        tar_path, project_id, req.commit_hash, project.dockerfile_path
+    )
 
     bug_hash_dict = {}
     for test_id in tests_with_bugs:
@@ -52,7 +54,7 @@ def test_whole_project(
     for commit_hash in commit_hashs:
         tar_path = storage.tars.tar_into(project, commit_hash)
         app_image_names[commit_hash] = k8s.build_commit(
-            tar_path, project_id, commit_hash
+            tar_path, project_id, commit_hash, project.dockerfile_path
         )
 
     config_ids = storage.cdpb_tests.project_id2ids(db, project_id)
@@ -170,7 +172,9 @@ def spawn_test_between(
     project = storage.projects.id2project(db, project.id)
 
     tar_path = storage.tars.tar_into(project, commit_hash)
-    app_image_name = k8s.build_commit(tar_path, project.id, commit_hash)
+    app_image_name = k8s.build_commit(
+        tar_path, project.id, commit_hash, project.dockerfile_path
+    )
     config_content = storage.configs.id2content(db, config_id)
     k8s.run_test(project, config_content, test_id, test_group_id, app_image_name)
 
