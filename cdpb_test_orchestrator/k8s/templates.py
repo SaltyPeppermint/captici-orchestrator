@@ -18,7 +18,9 @@ from kubernetes.client import (
     V1VolumeMount,
 )
 
-ORCHESTRATOR_URL = "cdpb-test-orchestrator:8000"
+
+def _orchestrator_url() -> str:
+    return "cdpb-test-orchestrator" + settings.namespace() + ".svc.cluster.local:8000"
 
 
 def _config_map_name(test_id: int) -> str:
@@ -49,7 +51,7 @@ def build_job(
             args=[
                 "-O",
                 f"{context_dir}/context.tar.gz",
-                f"{ORCHESTRATOR_URL}/internal/tars?tar_path={tar_path}",
+                f"{_orchestrator_url()}/internal/tars?tar_path={tar_path}",
             ],
             volume_mounts=[V1VolumeMount(name=tar_vol_name, mount_path=context_dir)],
         )
@@ -130,7 +132,7 @@ def test_job(
             image="gcr.io/google-containers/busybox:latest",
             command=["sh -c"],
             args=[
-                f"wget -O {adapter_path} {ORCHESTRATOR_URL}/internal/adapter",
+                f"wget -O {adapter_path} {_orchestrator_url()}/internal/adapter",
                 f"chmod +x {adapter_path}",
             ],
             volume_mounts=[
