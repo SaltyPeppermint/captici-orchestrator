@@ -70,6 +70,7 @@ def build_job(
         "--cache=True",
     ]
     job_spec = V1JobSpec(
+        ttl_seconds_after_finished=30,
         template=V1PodTemplateSpec(
             metadata=V1ObjectMeta(
                 name=f"build-pod-{build_id}", namespace=config["K8s"]["NAMESPACE"]
@@ -84,7 +85,7 @@ def build_job(
                 volumes=build_pod_volumes(regcred_vol_name, tar_vol_name),
                 restart_policy="Never",
             ),
-        )
+        ),
     )
 
     job = V1Job(
@@ -153,6 +154,7 @@ def test_job(
     config = get_config()
     env = test_pod_env(tester_command, threshold, result_path)
     job_spec = V1JobSpec(
+        ttl_seconds_after_finished=30,
         template=V1PodTemplateSpec(
             metadata=V1ObjectMeta(
                 name=f"test-pod-{test_id}", namespace=config["K8s"]["NAMESPACE"]
@@ -165,7 +167,7 @@ def test_job(
                 volumes=test_pod_volumes(test_id),
                 restart_policy="Never",
             ),
-        )
+        ),
     )
     return V1Job(
         kind="Pod",
