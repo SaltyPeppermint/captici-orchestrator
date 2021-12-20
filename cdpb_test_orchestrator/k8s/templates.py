@@ -20,7 +20,7 @@ from kubernetes.client import (
 
 
 def _orchestrator_url() -> str:
-    return "cdpb-test-orchestrator" + settings.namespace() + ".svc.cluster.local:8000"
+    return "cdpb-test-orchestrator." + settings.namespace() + ".svc.cluster.local"
 
 
 def _config_map_name(test_id: int) -> str:
