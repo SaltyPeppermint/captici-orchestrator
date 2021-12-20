@@ -12,7 +12,7 @@ def get_tar_path(tar_folder, commit_hash) -> str:
 
 
 def get_tar_folder(project_name: str, project_id: int) -> str:
-    tars_dir = settings.tars_dir
+    tars_dir = settings.tars_dir()
     return f"{tars_dir}/{project_id}-{project_name}"
 
 
