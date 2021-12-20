@@ -1,3 +1,4 @@
+import logging
 import os
 import tarfile
 
@@ -20,6 +21,7 @@ def tar_into(
     project: Project,
     commit_hash: str,
 ) -> str:
+    logging.info(f"Taring commit {commit_hash} of project {project.id}.")
     tar_folder = get_tar_folder(project.name, project.id)
     tar_path = get_tar_path(tar_folder, commit_hash)
 

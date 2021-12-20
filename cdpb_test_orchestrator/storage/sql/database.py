@@ -1,3 +1,5 @@
+import logging
+
 import sqlalchemy as sqla
 from cdpb_test_orchestrator import settings
 from sqlalchemy.orm import sessionmaker
@@ -9,7 +11,7 @@ session_factory = None
 
 if settings.db_type() == "sqlite":
     db_location = settings.db_location() + "/sqlite.db"
-    print(f"sqlite:///{db_location}")
+    logging.info(f"Opening SQLite DB at sqlite:///{db_location}")
     engine = sqla.create_engine(
         f"sqlite:///{db_location}",
         echo=True,

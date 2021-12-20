@@ -1,3 +1,5 @@
+import logging
+
 from junitparser import Error, Failure, JUnitXml, Skipped
 
 
@@ -15,7 +17,7 @@ def result2value(report: str) -> float:
     for suite in junit:
         # print(suite)
         for case in suite:
-            print(type(case))
+            # print(type(case))
             # print(case.name)
             # print(case.time)
             if case.result:
@@ -26,7 +28,7 @@ def result2value(report: str) -> float:
 
 
 def parse_case(case):
-    print(case.result)
+    logging.info(f"Parsing result {case.result}.")
     if isinstance(case.result, Error):
         raise JunitParsingError(
             "You're test raised an error according to Junit.", case.result.message

@@ -1,3 +1,5 @@
+import logging
+
 import uvicorn
 
 import cdpb_test_orchestrator.settings
@@ -16,5 +18,6 @@ def start(debug):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(encoding="utf-8", level=logging.INFO)
     init_db()
     start(cdpb_test_orchestrator.settings.is_debug())
