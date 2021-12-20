@@ -4,6 +4,7 @@
         "autopep",
         "cdpb",
         "classpath",
+        "configmaps",
         "dbmdl",
         "dockerconfigjson",
         "dockerignore",

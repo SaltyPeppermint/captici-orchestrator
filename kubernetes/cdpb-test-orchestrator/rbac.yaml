@@ -5,9 +5,11 @@ metadata:
   namespace: cdpb-tester
 rules:
   - apiGroups: [""]
-    resources: ["pods"]
-    verbs:
-      ["create", "get", "delete", "list", "update", "edit", "watch", "exec"]
+    resources: ["pods", "configmaps"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["batch", "extensions"]
+    resources: ["jobs"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 ---
 apiVersion: v1
 kind: ServiceAccount

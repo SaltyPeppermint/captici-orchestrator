@@ -17,8 +17,4 @@ def start(debug):
 
 if __name__ == "__main__":
     init_db()
-    config = cdpb_test_orchestrator.settings.get_config()
-    if config["ENV"]["DEBUG"] == "on":
-        start(True)
-    else:
-        start(False)
+    start(cdpb_test_orchestrator.settings.is_debug())

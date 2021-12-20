@@ -5,8 +5,8 @@ import re
 from typing import List
 
 import git
+from cdpb_test_orchestrator import settings
 from cdpb_test_orchestrator.data_objects import Project
-from cdpb_test_orchestrator.settings import get_config
 
 
 def auth_info2clone_url(repo_url: str, git_user: str, auth_token: str) -> str:
@@ -43,10 +43,8 @@ def update_repo(repo_path: str) -> git.Repo:
 
 
 def get_repo_path(project_name: str, project_id: int) -> str:
-    config = get_config()
-    nfs_mount = config["NFS"]["mount"]
-    repos_dir = config["Directories"]["repos_dir"]
-    return f"{nfs_mount}{repos_dir}/{project_id}-{project_name}"
+    repos_dir = settings.repos_dir()
+    return f"{repos_dir}/{project_id}-{project_name}"
 
 
 def get_all_commits(project: Project) -> List[str]:

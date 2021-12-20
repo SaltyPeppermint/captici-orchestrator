@@ -1,8 +1,8 @@
 import os
 import tarfile
 
+from cdpb_test_orchestrator import settings
 from cdpb_test_orchestrator.data_objects import Project
-from cdpb_test_orchestrator.settings import get_config
 
 from . import repos
 
@@ -12,10 +12,8 @@ def get_tar_path(tar_folder, commit_hash) -> str:
 
 
 def get_tar_folder(project_name: str, project_id: int) -> str:
-    config = get_config()
-    nfs_mount = config["NFS"]["mount"]
-    tar_dir = config["Directories"]["tar_dir"]
-    return f"{nfs_mount}{tar_dir}/{project_id}-{project_name}"
+    tars_dir = settings.tars_dir
+    return f"{tars_dir}/{project_id}-{project_name}"
 
 
 def tar_into(
