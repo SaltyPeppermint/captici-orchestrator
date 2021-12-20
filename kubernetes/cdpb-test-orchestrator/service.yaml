@@ -9,7 +9,6 @@ spec:
   selector:
     app: cdpb-test-orchestrator
   ports:
-    - nodePort: 30104
-      port: 8000
-      protocol: TCP
+    - protocol: TCP
+      port: 80
       targetPort: 8000
