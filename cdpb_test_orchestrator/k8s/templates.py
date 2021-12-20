@@ -67,7 +67,7 @@ def pod_builder_pod(
         spec=V1PodSpec(
             init_containers=[
                 V1Container(
-                    name="adapter-injector",
+                    name=f"context-downloader-{build_id}",
                     image="gcr.io/google-containers/busybox:latest",
                     command=["wget"],
                     args=[
