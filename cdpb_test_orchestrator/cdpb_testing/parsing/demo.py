@@ -2,6 +2,8 @@ import logging
 
 from junitparser import Error, Failure, JUnitXml, Skipped
 
+logger = logging.getLogger("uvicorn")
+
 
 class JunitParsingError(ValueError):
     pass
@@ -28,7 +30,7 @@ def result2value(report: str) -> float:
 
 
 def parse_case(case):
-    logging.info(f"Parsing result {case.result}.")
+    logger.info(f"Parsing result {case.result}.")
     if isinstance(case.result, Error):
         raise JunitParsingError(
             "You're test raised an error according to Junit.", case.result.message

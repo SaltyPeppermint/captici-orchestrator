@@ -11,6 +11,8 @@ from kubernetes.client.models.v1_job import V1Job
 
 from . import templates
 
+logger = logging.getLogger("uvicorn")
+
 
 def _load_credentials() -> None:
     if settings.is_debug():
@@ -46,14 +48,14 @@ def execute_build_job(manifest: V1Job) -> None:
 
     w = watch.Watch()
     for event in w.stream(api.list_namespaced_job, namespace=namespace):
-        logging.info(
+        logger.info(
             f"Build Job: {event['object'].metadata.name} "
             f"{event['object'].status.succeeded} succeeded."
         )
         if event["object"].metadata.name == name:
             if event["object"].status.succeeded == 1:
                 w.stop()
-                logging.info(f"{name} finished.")
+                logger.info(f"{name} finished.")
                 return
 
 
@@ -78,11 +80,11 @@ def _execute_config_map(manifest: V1ConfigMap) -> None:
 
     w = watch.Watch()
     for event in w.stream(api.list_namespaced_config_map, namespace=namespace):
-        logging.info(f"ConfigMap: {event['object'].metadata.name} {event['type']}")
+        logger.info(f"ConfigMap: {event['object'].metadata.name} {event['type']}")
         if event["object"].metadata.name == name:
             if event["type"] == "ADDED":
                 w.stop()
-                logging.info(f"{name} created.")
+                logger.info(f"{name} created.")
                 return
 
 
@@ -94,14 +96,14 @@ def _execute_test_job(manifest: V1Job) -> None:
     w = watch.Watch()
 
     for event in w.stream(api.list_namespaced_job, namespace=namespace):
-        logging.info(
+        logger.info(
             f"Test Job: {event['object'].metadata.name} "
             f"{event['object'].status.active} running."
         )
         if event["object"].metadata.name == name:
             if event["object"].status.active == 1:
                 w.stop()
-                logging.info(f"{name} started.")
+                logger.info(f"{name} started.")
                 return
 
 

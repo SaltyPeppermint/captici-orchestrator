@@ -7,6 +7,8 @@ from cdpb_test_orchestrator.data_objects import Project
 
 from . import repos
 
+logger = logging.getLogger("uvicorn")
+
 
 def get_tar_path(tar_folder, commit_hash) -> str:
     return f"{tar_folder}/{commit_hash}.tar.gz"
@@ -21,7 +23,7 @@ def tar_into(
     project: Project,
     commit_hash: str,
 ) -> str:
-    logging.info(f"Taring commit {commit_hash} of project {project.id}.")
+    logger.info(f"Taring commit {commit_hash} of project {project.id}.")
     tar_folder = get_tar_folder(project.name, project.id)
     tar_path = get_tar_path(tar_folder, commit_hash)
 
