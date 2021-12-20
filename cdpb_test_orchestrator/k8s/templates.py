@@ -7,10 +7,12 @@ from kubernetes.client import (
     V1Container,
     V1EmptyDirVolumeSource,
     V1EnvVar,
+    V1Job,
+    V1JobSpec,
     V1KeyToPath,
     V1ObjectMeta,
-    V1Pod,
     V1PodSpec,
+    V1PodTemplateSpec,
     V1SecretVolumeSource,
     V1Volume,
     V1VolumeMount,
@@ -45,9 +47,18 @@ def get_tar_download_cmd(tar_path: str) -> str:
     return get_orchestrator_url() + "/internal/tars?tar_path=" + tar_path
 
 
-def pod_builder_pod(
+def config_map(test_id: int, config_dict: Dict[str, str]):
+    return V1ConfigMap(
+        metadata=V1ObjectMeta(name=config_map_name(test_id)),
+        data=config_dict,
+        kind="ConfigMap",
+        api_version="v1",
+    )
+
+
+def build_job(
     build_id: str, image_name: str, tar_path: str, dockerfile_path: str
-) -> V1Pod:
+) -> V1Job:
     config = get_config()
     regcred_vol_name = f"regcred-vol-{build_id}"
     tar_vol_name = f"tar-vol-{build_id}"
@@ -58,62 +69,115 @@ def pod_builder_pod(
         f"--dockerfile={dockerfile_path}",
         "--cache=True",
     ]
-    return V1Pod(
-        kind="Pod",
-        api_version="v1",
+    job_spec = V1JobSpec(
+        template=V1PodTemplateSpec(
+            metadata=V1ObjectMeta(
+                name=f"build-pod-{build_id}", namespace=config["K8s"]["NAMESPACE"]
+            ),
+            spec=V1PodSpec(
+                init_containers=build_pod_init_container(
+                    build_id, tar_path, tar_vol_name, context_dir
+                ),
+                containers=build_pod_container(
+                    build_id, regcred_vol_name, tar_vol_name, context_dir, args
+                ),
+                volumes=build_pod_volumes(regcred_vol_name, tar_vol_name),
+                restart_policy="Never",
+            ),
+        )
+    )
+
+    job = V1Job(
+        kind="Job",
+        api_version="batch/v1",
         metadata=V1ObjectMeta(
-            name=f"build-pod-{build_id}", namespace=config["K8s"]["NAMESPACE"]
+            name=f"build-job-{build_id}", namespace=config["K8s"]["NAMESPACE"]
         ),
-        spec=V1PodSpec(
-            init_containers=[
-                V1Container(
-                    name=f"context-downloader-{build_id}",
-                    image="gcr.io/google-containers/busybox:latest",
-                    command=["wget"],
-                    args=[
-                        "-O",
-                        f"{context_dir}/context.tar.gz",
-                        get_tar_download_cmd(tar_path),
-                    ],
-                    volume_mounts=[
-                        V1VolumeMount(name=tar_vol_name, mount_path=context_dir)
-                    ],
-                )
-            ],
-            containers=[
-                V1Container(
-                    name=f"kaniko-{build_id}",
-                    image="gcr.io/kaniko-project/executor:latest",
-                    args=args,
-                    volume_mounts=[
-                        V1VolumeMount(
-                            name=regcred_vol_name, mount_path="/kaniko/.docker"
-                        ),
-                        V1VolumeMount(name=tar_vol_name, mount_path=context_dir),
-                    ],
-                )
-            ],
-            volumes=[
-                V1Volume(
-                    secret=V1SecretVolumeSource(
-                        secret_name="regcred",
-                        items=[
-                            V1KeyToPath(path="config.json", key=".dockerconfigjson")
-                        ],
-                    ),
-                    name=regcred_vol_name,
-                ),
-                V1Volume(
-                    empty_dir=V1EmptyDirVolumeSource(medium="Memory"), name=tar_vol_name
-                ),
-            ],
-            restart_policy="Never",
-            # security_context=V1PodSecurityContext(run_as_user=5678, run_as_group=450),
+        spec=job_spec,
+    )
+    return job
+
+
+def build_pod_volumes(regcred_vol_name, tar_vol_name):
+    return [
+        V1Volume(
+            secret=V1SecretVolumeSource(
+                secret_name="regcred",
+                items=[V1KeyToPath(path="config.json", key=".dockerconfigjson")],
+            ),
+            name=regcred_vol_name,
         ),
+        V1Volume(empty_dir=V1EmptyDirVolumeSource(medium="Memory"), name=tar_vol_name),
+    ]
+
+
+def build_pod_container(build_id, regcred_vol_name, tar_vol_name, context_dir, args):
+    return [
+        V1Container(
+            name=f"kaniko-{build_id}",
+            image="gcr.io/kaniko-project/executor:latest",
+            args=args,
+            volume_mounts=[
+                V1VolumeMount(name=regcred_vol_name, mount_path="/kaniko/.docker"),
+                V1VolumeMount(name=tar_vol_name, mount_path=context_dir),
+            ],
+        )
+    ]
+
+
+def build_pod_init_container(build_id, tar_path, tar_vol_name, context_dir):
+    return [
+        V1Container(
+            name=f"context-downloader-{build_id}",
+            image="gcr.io/google-containers/busybox:latest",
+            command=["wget"],
+            args=[
+                "-O",
+                f"{context_dir}/context.tar.gz",
+                get_tar_download_cmd(tar_path),
+            ],
+            volume_mounts=[V1VolumeMount(name=tar_vol_name, mount_path=context_dir)],
+        )
+    ]
+
+
+def test_job(
+    test_id: int,
+    app_image_name: str,
+    config_folder: str,
+    tester_command: str,
+    result_path: str,
+    threshold: float,
+    tester_image_name: str | None = None,
+) -> V1Job:
+    config = get_config()
+    env = test_pod_env(tester_command, threshold, result_path)
+    job_spec = V1JobSpec(
+        template=V1PodTemplateSpec(
+            metadata=V1ObjectMeta(
+                name=f"test-pod-{test_id}", namespace=config["K8s"]["NAMESPACE"]
+            ),
+            spec=V1PodSpec(
+                init_containers=[test_pod_init_container(test_id)],
+                containers=test_pod_container(
+                    test_id, app_image_name, config_folder, env, tester_image_name
+                ),
+                volumes=test_pod_volumes(test_id),
+                restart_policy="Never",
+            ),
+        )
+    )
+    return V1Job(
+        kind="Pod",
+        api_version="batch/v1",
+        metadata=V1ObjectMeta(
+            name=f"test-job-{test_id}", namespace=config["K8s"]["NAMESPACE"]
+        ),
+        spec=job_spec,
     )
 
 
-def adapter_init_container(test_id: int):
+def test_pod_init_container(test_id: int):
     return V1Container(
         name=f"adapter-injector-{test_id}",
         image="gcr.io/google-containers/busybox:latest",
@@ -125,56 +189,20 @@ def adapter_init_container(test_id: int):
     )
 
 
-def config_map(test_id: int, config_dict: Dict[str, str]):
-    return V1ConfigMap(
-        metadata=V1ObjectMeta(name=config_map_name(test_id)),
-        data=config_dict,
-        kind="ConfigMap",
-        api_version="v1",
-    )
-
-
-def pod(
-    test_id: int,
-    app_image_name: str,
-    config_folder: str,
-    tester_command: str,
-    result_path: str,
-    threshold: float,
-    tester_image_name: str | None = None,
-) -> V1Pod:
-    config = get_config()
-    env = pod_env(tester_command, threshold, result_path)
-    return V1Pod(
-        kind="Pod",
-        api_version="v1",
-        metadata=V1ObjectMeta(
-            name=pod_name(test_id), namespace=config["K8s"]["NAMESPACE"]
+def test_pod_volumes(test_id):
+    return [
+        V1Volume(
+            config_map=V1ConfigMapVolumeSource(name=config_map_name(test_id)),
+            name=config_vol_name(test_id),
         ),
-        spec=V1PodSpec(
-            init_containers=[adapter_init_container(test_id)],
-            containers=pod_container(
-                test_id, app_image_name, config_folder, env, tester_image_name
-            ),
-            volumes=[
-                V1Volume(
-                    config_map=V1ConfigMapVolumeSource(name=config_map_name(test_id)),
-                    name=config_vol_name(test_id),
-                ),
-                V1Volume(
-                    empty_dir=V1EmptyDirVolumeSource(medium="Memory"),
-                    name=adapter_vol_name(test_id),
-                ),
-            ],
-            restart_policy="Never",
-            # security_context=V1PodSecurityContext(
-            #    fs_group=450
-            # )
+        V1Volume(
+            empty_dir=V1EmptyDirVolumeSource(medium="Memory"),
+            name=adapter_vol_name(test_id),
         ),
-    )
+    ]
 
 
-def pod_container(
+def test_pod_container(
     test_id: int,
     app_image_name: str,
     config_folder: str,
@@ -226,16 +254,12 @@ def pod_container(
     return container_list
 
 
-def pod_env(tester_command: str, threshold: float, result_path: str):
+def test_pod_env(tester_command: str, threshold: float, result_path: str):
     return [
         V1EnvVar(name="TESTER_COMMAND", value=tester_command),
         V1EnvVar(name="THRESHOLD", value=str(threshold)),
         V1EnvVar(name="RESULT_PATH", value=result_path),
     ]
-
-
-def pod_name(test_id: int) -> str:
-    return f"pod-{test_id}"
 
 
 def adapter_vol_name(test_id: int) -> str:
