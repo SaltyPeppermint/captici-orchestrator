@@ -21,6 +21,7 @@ router = APIRouter(
 
 @router.get("/adapter")
 def get_adapter():
+    logger.info("Downloading adapter for test.")
     return FileResponse("static/performance-test-adapter")
 
 

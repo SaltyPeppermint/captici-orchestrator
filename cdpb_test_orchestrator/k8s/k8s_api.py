@@ -109,18 +109,11 @@ def build_commits(
 
 def _execute_config_map(manifest: V1ConfigMap) -> None:
     api = _get_core_api()
-    name = manifest.metadata.name
     namespace = settings.namespace()
-    api.create_namespaced_config_map(body=manifest, namespace=namespace)
-
-    w = watch.Watch()
-    for event in w.stream(api.list_namespaced_config_map, namespace=namespace):
-        logger.info(f"ConfigMap: {event['object'].metadata.name} {event['type']}")
-        if event["object"].metadata.name == name:
-            if event["type"] == "ADDED":
-                w.stop()
-                logger.info(f"{name} created.")
-                break
+    api.create_namespaced_config_map(
+        body=manifest, namespace=namespace, async_req=False
+    )
+    logger.info(f"Config map {manifest.metadata.name} created.")
     return
 
 
@@ -151,7 +144,7 @@ def run_test(
     test_group_id: int,
     app_image_name: str,
 ) -> None:
-    config_file, config_folder = project.config_path.rsplit("/", 1)
+    config_folder, config_file = project.config_path.rsplit("/", 1)
 
     config_map_manifest = templates.config_map(test_id, {config_file: config_content})
     _execute_config_map(config_map_manifest)
@@ -177,4 +170,13 @@ def run_test(
         )
 
     _execute_test_job(pod_manifest)
+    return
+
+
+def delete_config_map(test_id: int) -> None:
+    api = _get_core_api()
+    namespace = settings.namespace()
+    name = templates.config_map_name(test_id)
+    api.delete_namespaced_config_map(name=name, namespace=namespace, async_req=False)
+    logger.info(f"Config map {name} deleted.")
     return

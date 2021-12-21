@@ -45,7 +45,7 @@ def request_project_test(
     db: Session = Depends(get_db),
 ):
     test_group_id = storage.cdpb_test_groups.add(
-        db, testing_req.id, testing_req.threshold, True
+        db, testing_req.project_id, testing_req.threshold, True
     )
     background_tasks.add_task(
         cdpb_testing.cdpb_test.test_whole_project,

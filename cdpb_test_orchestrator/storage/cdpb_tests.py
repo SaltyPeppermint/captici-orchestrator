@@ -42,7 +42,7 @@ def id2project_id(db: Session, test_id: int) -> int:
 
 
 def project_id2ids(db: Session, project_id: int) -> List[int]:
-    stmt = select(models.CDPBTest.id).where(models.CDPBTest.id == project_id)
+    stmt = select(models.Config.id).where(models.Config.project_id == project_id)
     return db.execute(stmt).scalars().all()
 
 

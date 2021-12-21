@@ -18,7 +18,7 @@ router = APIRouter(
 
 @router.post("/add", status_code=status.HTTP_200_OK)
 def add_project(project_to_add: Project, db: Session = Depends(get_db)):
-    project_to_add.id = None
+    project_to_add = None
     project_id = projects.add(db, project_to_add)
     return {"project_id": project_id}
 

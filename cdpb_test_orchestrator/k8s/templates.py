@@ -10,6 +10,7 @@ from kubernetes.client import (
     V1Job,
     V1JobSpec,
     V1KeyToPath,
+    V1LocalObjectReference,
     V1ObjectMeta,
     V1PodSpec,
     V1PodTemplateSpec,
@@ -23,14 +24,14 @@ def _orchestrator_url() -> str:
     return "cdpb-test-orchestrator." + settings.namespace() + ".svc.cluster.local"
 
 
-def _config_map_name(test_id: int) -> str:
-    return f"config-map-{test_id}"
+def config_map_name(test_id: int) -> str:
+    return f"test-config-map-{test_id}"
 
 
 def config_map(test_id: int, config_dict: Dict[str, str]) -> V1ConfigMap:
     return V1ConfigMap(
         metadata=V1ObjectMeta(
-            name=_config_map_name(test_id), namespace=settings.namespace()
+            name=config_map_name(test_id), namespace=settings.namespace()
         ),
         data=config_dict,
         kind="ConfigMap",
@@ -123,17 +124,21 @@ def test_job(
     threshold: float,
     tester_image_name: str | None = None,
 ) -> V1Job:
-    adapter_dir = "/opt"
+    adapter_dir = "/cdpb-test"
     adapter_path = adapter_dir + "/adapter"
     adapter_vol_name = f"adapter-vol-{test_id}"
+
+    wget_cmd = f"wget -O {adapter_path} {_orchestrator_url()}/internal/adapter"
+    chmod_cmd = f"chmod +x {adapter_path}"
+    dl_chmod_cmd = f"{wget_cmd} && {chmod_cmd}"
     init_containers = [
         V1Container(
             name=f"adapter-injector-{test_id}",
             image="gcr.io/google-containers/busybox:latest",
-            command=["sh -c"],
+            command=["sh"],
             args=[
-                f"wget -O {adapter_path} {_orchestrator_url()}/internal/adapter",
-                f"chmod +x {adapter_path}",
+                "-c",
+                dl_chmod_cmd,
             ],
             volume_mounts=[
                 V1VolumeMount(name=adapter_vol_name, mount_path=adapter_dir)
@@ -182,7 +187,7 @@ def test_job(
 
     volumes = [
         V1Volume(
-            config_map=V1ConfigMapVolumeSource(name=_config_map_name(test_id)),
+            config_map=V1ConfigMapVolumeSource(name=config_map_name(test_id)),
             name=config_vol_name,
         ),
         V1Volume(
@@ -202,12 +207,13 @@ def test_job(
                 containers=containers,
                 volumes=volumes,
                 restart_policy="Never",
+                image_pull_secrets=[V1LocalObjectReference(name="regcred")],
             ),
         ),
     )
 
     return V1Job(
-        kind="Pod",
+        kind="Job",
         api_version="batch/v1",
         metadata=V1ObjectMeta(
             name=f"test-job-{test_id}", namespace=settings.namespace()

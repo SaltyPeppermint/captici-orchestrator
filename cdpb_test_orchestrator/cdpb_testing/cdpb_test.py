@@ -114,9 +114,10 @@ def test_whole_project(
 
 def report_action(db: Session, test_group_id: int, test_id: int) -> None:
     logger.info(f"Received report for test {test_id} in test_group {test_group_id}")
+    logger.info(f"Deleteing now unused config map for test {test_id}")
+
     project_id = storage.cdpb_tests.id2project_id(db, test_id)
     project = storage.projects.id2project(db, project_id)
-
     config_id = storage.cdpb_tests.id2config_id(db, test_id)
     commit_hash = storage.cdpb_tests.id2commit_hash(db, test_id)
 
