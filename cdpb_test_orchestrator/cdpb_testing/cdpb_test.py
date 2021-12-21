@@ -115,6 +115,7 @@ def test_whole_project(
 def report_action(db: Session, test_group_id: int, test_id: int, result: str) -> None:
     logger.info(f"Received report for test {test_id} in test_group {test_group_id}")
     logger.info(f"Deleteing now unused config map for test {test_id}")
+    k8s.delete_config_map(test_id)
 
     project_id = storage.cdpb_tests.id2project_id(db, test_id)
     project = storage.projects.id2project(db, project_id)
