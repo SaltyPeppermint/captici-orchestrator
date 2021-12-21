@@ -31,7 +31,7 @@ def add_result(
     test_id: int = Body(..., title="Id of the test to add to", gt=0),
     test_group_id: int = Body(..., title="Id of the test group", gt=0),
     result: str = Body(
-        ..., description="Config as a http file. Max length 4096.", max_length=4096
+        ..., description="Config as a string. Max length 4096.", max_length=4096
     ),
     db: Session = Depends(get_db),
 ):

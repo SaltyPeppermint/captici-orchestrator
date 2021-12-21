@@ -121,7 +121,7 @@ def test_job(
     config_folder: str,
     tester_command: str,
     result_path: str,
-    threshold: float,
+    test_group_id: int,
     tester_image_name: str | None = None,
 ) -> V1Job:
     adapter_dir = "/cdpb-test"
@@ -148,8 +148,9 @@ def test_job(
 
     config_vol_name = f"config-vol-{test_id}"
     env = [
+        V1EnvVar(name="TEST_ID", value=str(test_id)),
+        V1EnvVar(name="TEST_GROUP_ID", value=str(test_group_id)),
         V1EnvVar(name="TESTER_COMMAND", value=tester_command),
-        V1EnvVar(name="THRESHOLD", value=str(threshold)),
         V1EnvVar(name="RESULT_PATH", value=result_path),
     ]
     if tester_image_name:
