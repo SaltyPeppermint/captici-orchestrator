@@ -378,7 +378,7 @@ i18n = ["Babel (>=2.7)"]
 
 [[package]]
 name = "junitparser"
-version = "2.2.0"
+version = "2.3.0"
 description = "Manipulates JUnit/xUnit Result XML files"
 category = "main"
 optional = false
@@ -1157,8 +1157,8 @@ jinja2 = [
     {file = "Jinja2-3.0.3.tar.gz", hash = "sha256:611bb273cd68f3b993fabdc4064fc858c5b47a973cb5aa7999ec1ba405c87cd7"},
 ]
 junitparser = [
-    {file = "junitparser-2.2.0-py2.py3-none-any.whl", hash = "sha256:81479565605cc5605710bf9a990bc134b0ede43de3bc4cbd5acba97b5318c507"},
-    {file = "junitparser-2.2.0.tar.gz", hash = "sha256:58e5b50f4018e20d6cb307c971ad4a8bf81f683d41ec701687d81a6f66c1fc9b"},
+    {file = "junitparser-2.3.0-py2.py3-none-any.whl", hash = "sha256:e8c558e8de0e2a4542f73821e2f84a8a5c102c6f07645f4dbe8f53dc05c8d94c"},
+    {file = "junitparser-2.3.0.tar.gz", hash = "sha256:604f58a47dfe3a6da26fa0136461eec7730a3abb31d05c38fa20763154828c67"},
 ]
 kubernetes = [
     {file = "kubernetes-19.15.0-py2.py3-none-any.whl", hash = "sha256:52312adda60d92ba45b325f2c1505924656389222005f7e089718e1ad03bc07f"},

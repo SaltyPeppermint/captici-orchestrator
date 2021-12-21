@@ -96,9 +96,9 @@ h11==0.12.0; python_full_version >= "3.6.1" and python_version >= "3.6" \
 idna==3.3; python_full_version >= "3.6.2" and python_version >= "3.6" \
     --hash=sha256:84d9dd047ffa80596e0f246e2eab0b391788b0503584e8945f2368256d2735ff \
     --hash=sha256:9d643ff0a55b762d5cdb124b8eaa99c66322e2157b69160bc32796e824360e6d
-junitparser==2.2.0 \
-    --hash=sha256:81479565605cc5605710bf9a990bc134b0ede43de3bc4cbd5acba97b5318c507 \
-    --hash=sha256:58e5b50f4018e20d6cb307c971ad4a8bf81f683d41ec701687d81a6f66c1fc9b
+junitparser==2.3.0 \
+    --hash=sha256:e8c558e8de0e2a4542f73821e2f84a8a5c102c6f07645f4dbe8f53dc05c8d94c \
+    --hash=sha256:604f58a47dfe3a6da26fa0136461eec7730a3abb31d05c38fa20763154828c67
 kubernetes==19.15.0; python_version >= "3.6" \
     --hash=sha256:52312adda60d92ba45b325f2c1505924656389222005f7e089718e1ad03bc07f \
     --hash=sha256:08c93f300a9837104282ecc81458b903a56444c5c1ec3d990d237557312af47f
