@@ -150,8 +150,9 @@ def test_job(
     env = [
         V1EnvVar(name="TEST_ID", value=str(test_id)),
         V1EnvVar(name="TEST_GROUP_ID", value=str(test_group_id)),
-        V1EnvVar(name="TESTER_COMMAND", value=tester_command),
+        V1EnvVar(name="TEST_COMMAND", value=tester_command),
         V1EnvVar(name="RESULT_PATH", value=result_path),
+        V1EnvVar(name="NAMESPACE", value=settings.namespace()),
     ]
     if tester_image_name:
         containers = [
