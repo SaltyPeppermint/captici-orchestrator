@@ -15,15 +15,13 @@ from .selection import commits, configs
 logger = logging.getLogger("uvicorn")
 
 
-def test_commit(
-    db: Session, project_id: int, test_group_id: int, req: CommitTestRequest
-) -> None:
+def test_commit(db: Session, test_group_id: int, req: CommitTestRequest) -> None:
     logger.info(
-        f"New commit test of project {project_id} requested "
+        f"New commit test of project {req.project_id} requested "
         f"under the test group {test_group_id}"
     )
-    project = storage.projects.id2project(db, project_id)
-    tests_with_bugs = evaluate.bugs_in_project(db, project_id, req.threshold)
+    project = storage.projects.id2project(db, req.project_id)
+    tests_with_bugs = evaluate.bugs_in_project(db, req.project_id, req.threshold)
     logger.info(f"Previous bugs found in the test {tests_with_bugs}.")
 
     tar_path = storage.tars.tar_into(project, req.commit_hash)
@@ -43,7 +41,7 @@ def test_commit(
         preceding_test_id = preceding_test[1]
         config_id = storage.cdpb_tests.id2config_id(db, preceding_test_id)
         test_id = storage.cdpb_tests.add_empty(
-            db, project_id, config_id, req.commit_hash, preceding_test_id, None
+            db, req.project_id, config_id, req.commit_hash, preceding_test_id, None
         )
 
         storage.cdpb_test_in_group.add_test_to_group(db, test_id, test_group_id)
@@ -52,41 +50,43 @@ def test_commit(
         logger.info(f"Starting new commit test with config {config_id}.")
         logger.info(
             f"Started new commit test {test_id} with config {config_id} for "
-            f"of {project_id} in the test group {test_group_id}."
+            f"of {req.project_id} in the test group {test_group_id}."
         )
     logger.info(
-        f"Started all new commit tests for new commit in {project_id} "
+        f"Started all new commit tests for new commit in {req.project_id} "
         f"in the test group {test_group_id}."
     )
     return
 
 
 def test_whole_project(
-    db: Session, project_id: int, test_group_id: int, req: ProjectTestRequest
+    db: Session, test_group_id: int, req: ProjectTestRequest
 ) -> None:
     logger.info(
-        f"Whole project test of project {project_id} requested "
+        f"Whole project test of project {req.project_id} requested "
         f"under the test group {test_group_id}"
     )
-    project = storage.projects.id2project(db, project_id)
+    project = storage.projects.id2project(db, req.project_id)
     commit_hashs = commits.initial_sample_select(project, req.n_commits)
     logger.info(f"Selected commits {commit_hashs} for initial test.")
 
-    config_ids = storage.cdpb_tests.project_id2ids(db, project_id)
-    logger.info(f"Testing all configs {config_ids} for initial test of {project_id}.")
+    config_ids = storage.cdpb_tests.project_id2ids(db, req.project_id)
+    logger.info(
+        f"Testing all configs {config_ids} for initial test of {req.project_id}."
+    )
 
     tar_paths = {}
     for commit_hash in commit_hashs:
         tar_paths[commit_hash] = storage.tars.tar_into(project, commit_hash)
 
-    app_image_names = k8s.build_commits(project_id, project, tar_paths)
+    app_image_names = k8s.build_commits(req.project_id, project, tar_paths)
 
     for config_id in config_ids:
         preceding_test_id = None
         config_content = storage.configs.id2content(db, config_id)
         for commit_hash in commit_hashs:
             test_id = storage.cdpb_tests.add_empty(
-                db, project_id, config_id, commit_hash, preceding_test_id, None
+                db, req.project_id, config_id, commit_hash, preceding_test_id, None
             )
             storage.cdpb_test_in_group.add_test_to_group(db, test_id, test_group_id)
 
@@ -98,14 +98,15 @@ def test_whole_project(
 
             logger.info(
                 f"Starting test {test_id} with config {config_id} for "
-                f"initial testing of {project_id} in the test group {test_group_id}."
+                f"initial testing of {req.project_id} "
+                f"in the test group {test_group_id}."
             )
             k8s.run_test(
                 project, config_content, test_id, test_group_id, app_image_name
             )
 
     logger.info(
-        f"Started all initial tests for whole project test of {project_id}"
+        f"Started all initial tests for whole project test of {req.project_id}"
         f"in the test group {test_group_id}."
     )
     return

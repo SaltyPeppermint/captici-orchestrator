@@ -17,14 +17,14 @@ router = APIRouter(
 
 
 @router.post("/add", status_code=status.HTTP_200_OK)
-async def add_project(project_to_add: Project, db: Session = Depends(get_db)):
+def add_project(project_to_add: Project, db: Session = Depends(get_db)):
     project_to_add.id = None
     project_id = projects.add(db, project_to_add)
     return {"project_id": project_id}
 
 
 @router.get("/get", status_code=status.HTTP_200_OK)
-async def get_project(
+def get_project(
     project_id: int = Query(..., title="Id of the project to get", gt=0),
     db: Session = Depends(get_db),
 ):
@@ -38,7 +38,7 @@ async def get_project(
 
 
 @router.delete("/delete", status_code=status.HTTP_200_OK)
-async def delete_project(
+def delete_project(
     project_id: int = Query(..., title="Id of the project to delete", gt=0),
     db: Session = Depends(get_db),
 ):

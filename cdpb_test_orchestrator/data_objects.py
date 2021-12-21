@@ -20,6 +20,7 @@ class TestResponse(BaseModel):
 
 
 class CommitTestRequest(BaseModel):
+    project_id: int = Field(..., description="Id of the Project to test.", gt=0)
     n_commits: int = Field(..., description="n commits to test", gt=0)
     n_configs: int = Field(..., description="n configs to test", gt=0)
     commit_hash: str = Field(
@@ -36,6 +37,7 @@ class CommitTestRequest(BaseModel):
 
 
 class ProjectTestRequest(BaseModel):
+    project_id: int = Field(..., description="Id of the Project to test.", gt=0)
     n_commits: int = Field(..., description="n commits to test", gt=0)
     threshold: float = Field(
         0.25, description="Threshold for regression detection per test_group."

@@ -10,7 +10,7 @@ from cdpb_test_orchestrator.data_objects import (
 )
 from cdpb_test_orchestrator.storage.sql.database import get_db
 from fastapi import APIRouter, BackgroundTasks, HTTPException, status
-from fastapi.params import Body, Depends, Query
+from fastapi.params import Depends, Query
 from sqlalchemy.orm import Session
 
 router = APIRouter(
@@ -22,40 +22,36 @@ router = APIRouter(
 
 @router.post("/commit", status_code=status.HTTP_200_OK)
 def request_commit_test(
+    testing_req: CommitTestRequest,
     background_tasks: BackgroundTasks,
-    project_id: int = Query(..., title="Project_id to test", gt=0),
-    testing_request: CommitTestRequest = Body(...),
     db: Session = Depends(get_db),
 ):
     test_group_id = storage.cdpb_test_groups.add(
-        db, project_id, testing_request.threshold, False
+        db, testing_req.project_id, testing_req.threshold, False
     )
     background_tasks.add_task(
         cdpb_testing.cdpb_test.test_commit,
         db,
-        project_id,
         test_group_id,
-        testing_request,
+        testing_req,
     )
     return {"test_group_id": test_group_id}
 
 
 @router.post("/project", status_code=status.HTTP_200_OK)
 def request_project_test(
+    testing_req: ProjectTestRequest,
     background_tasks: BackgroundTasks,
-    project_id: int = Query(..., title="Project_id to test", gt=0),
-    testing_request: ProjectTestRequest = Body(...),
     db: Session = Depends(get_db),
 ):
     test_group_id = storage.cdpb_test_groups.add(
-        db, project_id, testing_request.threshold, True
+        db, testing_req.id, testing_req.threshold, True
     )
     background_tasks.add_task(
         cdpb_testing.cdpb_test.test_whole_project,
         db,
-        project_id,
         test_group_id,
-        testing_request,
+        testing_req,
     )
     return {"test_group_id": test_group_id}
 
