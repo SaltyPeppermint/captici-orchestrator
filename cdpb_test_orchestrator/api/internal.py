@@ -25,7 +25,7 @@ def get_adapter():
     return FileResponse("static/adapter")
 
 
-@router.post("/results", status_code=status.HTTP_200_OK)
+@router.post("/result", status_code=status.HTTP_200_OK)
 def add_result(
     background_tasks: BackgroundTasks,
     test_id: int = Body(..., title="Id of the test to add to", gt=0),
