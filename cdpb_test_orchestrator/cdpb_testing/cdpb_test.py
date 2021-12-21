@@ -112,7 +112,7 @@ def test_whole_project(
     return
 
 
-def report_action(db: Session, test_group_id: int, test_id: int) -> None:
+def report_action(db: Session, test_group_id: int, test_id: int, result: str) -> None:
     logger.info(f"Received report for test {test_id} in test_group {test_group_id}")
     logger.info(f"Deleteing now unused config map for test {test_id}")
 
@@ -121,7 +121,6 @@ def report_action(db: Session, test_group_id: int, test_id: int) -> None:
     config_id = storage.cdpb_tests.id2config_id(db, test_id)
     commit_hash = storage.cdpb_tests.id2commit_hash(db, test_id)
 
-    result = storage.cdpb_tests.id2result(db, test_id)
     threshold = storage.cdpb_test_groups.id2threshold(db, test_group_id)
     logger.info(f"Evaluating with threshhold {threshold}.")
 

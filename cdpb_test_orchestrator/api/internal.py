@@ -39,7 +39,7 @@ def add_result(
     storage.cdpb_tests.add_result(db, test_id, result)
     if storage.cdpb_test_groups.id2whole_project_test(db, test_group_id):
         background_tasks.add_task(
-            cdpb_testing.cdpb_test.report_action, db, test_group_id, result, test_id
+            cdpb_testing.cdpb_test.report_action, db, test_group_id, test_id, result
         )
     return
 
