@@ -1,12 +1,12 @@
 # type: ignore
 # temporarily disabling pydantic mypy checking due to bug
 # https://github.com/samuelcolvin/pydantic/pull/3175#issuecomment-914897604
-import sqlalchemy
 from cdpb_test_orchestrator.data_objects import Project
 from cdpb_test_orchestrator.storage import projects
 from cdpb_test_orchestrator.storage.sql.database import get_db
 from fastapi import APIRouter, HTTPException, status
 from fastapi.params import Depends, Query
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
 router = APIRouter(
@@ -18,7 +18,7 @@ router = APIRouter(
 
 @router.post("/add", status_code=status.HTTP_200_OK)
 def add_project(project_to_add: Project, db: Session = Depends(get_db)):
-    project_to_add = None
+    project_to_add.id = None
     project_id = projects.add(db, project_to_add)
     return {"project_id": project_id}
 
@@ -31,7 +31,7 @@ def get_project(
     try:
         project = projects.id2project(db, project_id)
         return project
-    except sqlalchemy.exc.NoResultFound as no_result:
+    except NoResultFound as no_result:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Project not found"
         ) from no_result
@@ -45,7 +45,7 @@ def delete_project(
     try:
         projects.deleteById(db, project_id)
         return
-    except sqlalchemy.exc.NoResultFound as no_result:
+    except NoResultFound as no_result:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Project not found"
         ) from no_result

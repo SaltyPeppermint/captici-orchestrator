@@ -5,9 +5,11 @@
 import logging
 
 from cdpb_test_orchestrator import storage
+from cdpb_test_orchestrator.storage import configs
 from cdpb_test_orchestrator.storage.sql.database import get_db
-from fastapi import APIRouter, status
+from fastapi import APIRouter, HTTPException, status
 from fastapi.params import Body, Depends, Query
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger("uvicorn")
@@ -48,3 +50,17 @@ def register_project(
 ):
     config_ids = storage.configs.project_id2ids(db, project_id)
     return {"config_ids": config_ids}
+
+
+@router.delete("/delete", status_code=status.HTTP_200_OK)
+def delete_project(
+    config_id: int = Query(..., title="Id of the project to delete", gt=0),
+    db: Session = Depends(get_db),
+):
+    try:
+        configs.deleteById(db, config_id)
+        return
+    except NoResultFound as no_result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Project not found"
+        ) from no_result
