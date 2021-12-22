@@ -121,8 +121,8 @@ class RegressionResponse(BaseModel):
 
 class TestResponse(BaseModel):
     project_id: int
-    individual_results: Dict[int, Optional[float]]
     bug_found: bool
+    individual_results: Dict[int, Optional[float]]
     regressions: Optional[List[RegressionResponse]] = None
     # Dict of Regressing commits and corresponding config ids
 
