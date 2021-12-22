@@ -1,4 +1,5 @@
 import logging
+import time
 from typing import Dict, List
 
 from cdpb_test_orchestrator import settings
@@ -95,6 +96,12 @@ def build_commits(
             build_id, image_name, tar_path, project.dockerfile_path
         )
         api.create_namespaced_job(body=manifest, namespace=namespace)
+        logger.info(
+            "Have to wait a second since rate limiting is commonly around 1 second."
+            "See docs.aws.amazon.com/AmazonECR/latest/public/public-service-quotas.html"
+            "Could be solved with a generic pull through cache in the future."
+        )
+        time.sleep(1.5)  # yes this is ugly see logging info above.
         manifests.append(manifest)
         app_image_names[commit_hash] = image_name
 
