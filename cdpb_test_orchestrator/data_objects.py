@@ -113,7 +113,7 @@ class Project(BaseModel):
 
 class TestResponse(BaseModel):
     individual_results: Dict[int, Optional[float]]
-    is_regression: bool
+    bug_found: bool
     regressing_config: Optional[List[int]] = None
 
 
