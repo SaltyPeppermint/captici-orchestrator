@@ -111,10 +111,20 @@ class Project(BaseModel):
         orm_mode = True
 
 
+class RegressionResponse(BaseModel):
+    test_id: int
+    commit_hash: str
+    config_id: int
+    config_content: str
+    regression: float
+
+
 class TestResponse(BaseModel):
+    project_id: int
     individual_results: Dict[int, Optional[float]]
     bug_found: bool
-    regressing_config: Optional[List[int]] = None
+    regressions: Optional[List[RegressionResponse]] = None
+    # Dict of Regressing commits and corresponding config ids
 
 
 class Test(BaseModel):
