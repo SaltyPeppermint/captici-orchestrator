@@ -46,15 +46,13 @@ def _await_build_jobs(api: BatchV1Api, namespace: str, manifests: List[V1Job]) -
     names = [manifest.metadata.name for manifest in manifests]
     w = watch.Watch()
     for event in w.stream(api.list_namespaced_job, namespace=namespace):
-        logger.info(
-            f"Build Job: {event['object'].metadata.name} "
-            f"{event['object'].status.succeeded} succeeded."
-        )
         if event["object"].metadata.name in names:
             if event["object"].status.succeeded == 1:
-                logger.info(f"{event['object'].metadata.name} finished.")
                 names.remove(event["object"].metadata.name)
-        if names == []:
+                logger.info(
+                    f"{event['object'].metadata.name} finished. {names} remaining."
+                )
+        if len(names) == 0:
             w.stop()
             break
     return
@@ -97,20 +95,21 @@ def build_commits(
         )
         api.create_namespaced_job(body=manifest, namespace=namespace)
         logger.info(
-            "Have to wait a second since rate limiting is commonly around 1 second."
+            "Have to wait a second since rate limiting is commonly around 1 second. "
             "See docs.aws.amazon.com/AmazonECR/latest/public/public-service-quotas.html"
-            "Could be solved with a generic pull through cache in the future."
         )
-        time.sleep(1.5)  # yes this is ugly see logging info above.
+        time.sleep(1.5)
+        # yes this is ugly see logging info above.
+        # Could be solved with a generic pull through cache in the future.
         manifests.append(manifest)
         app_image_names[commit_hash] = image_name
 
     logger.info(
-        f"Built images of commits {tar_paths} for initial test of {project_id}."
+        f"Building images of commits {tar_paths.values()} "
+        f"for initial test of {project_id}..."
     )
-    for manifest in manifests:
-        _await_build_jobs(api, namespace, manifests)
-
+    _await_build_jobs(api, namespace, manifests)
+    logger.info("All images built!")
     return app_image_names
 
 

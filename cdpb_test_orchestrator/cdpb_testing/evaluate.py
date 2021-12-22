@@ -1,7 +1,7 @@
 from typing import Dict, List
 
 from cdpb_test_orchestrator import storage
-from cdpb_test_orchestrator.data_objects import Project, ResultParser, TestResponse
+from cdpb_test_orchestrator.data_objects import ResultParser, TestResponse
 
 from . import parsing
 
@@ -86,23 +86,3 @@ def testing_report(db, test_group_id) -> TestResponse:
     # test_report = TestResponse(individual_results={
     #    2: "AS", 3: "asdf"}, bug_found = True, regressing_config = [2, 3])
     return test_group_id
-
-
-def bug_in_interval(
-    project: Project,
-    preceding_commit_hash: str,
-    preceding_test_result: str,
-    following_commit_hash: str,
-    following_test_result: str,
-    threshold: float,
-):
-    parent_relationship = storage.repos.is_parent_commit(
-        project.name, project.id, preceding_commit_hash, following_commit_hash
-    )
-    if not parent_relationship:
-        bug_between = is_bug_between(
-            project.parser, threshold, preceding_test_result, following_test_result
-        )
-        if bug_between and not parent_relationship:
-            return True
-    return False

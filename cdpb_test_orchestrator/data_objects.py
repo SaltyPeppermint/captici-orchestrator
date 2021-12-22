@@ -13,12 +13,6 @@ class ResultParser(str, Enum):
     JUNIT = "junit"
 
 
-class TestResponse(BaseModel):
-    individual_results: Dict[int, Optional[float]]
-    is_regression: bool
-    regressing_config: Optional[List[int]] = None
-
-
 class CommitTestRequest(BaseModel):
     project_id: int = Field(..., description="Id of the Project to test.", gt=0)
     n_commits: int = Field(..., description="n commits to test", gt=0)
@@ -115,3 +109,18 @@ class Project(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class TestResponse(BaseModel):
+    individual_results: Dict[int, Optional[float]]
+    is_regression: bool
+    regressing_config: Optional[List[int]] = None
+
+
+class Test(BaseModel):
+    id: int
+    result: str
+    commit_hash: str
+    config_id: int
+    config_content: str
+    project: Project

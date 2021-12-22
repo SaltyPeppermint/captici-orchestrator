@@ -68,6 +68,7 @@ def build_job(
                 f"--destination={image_name}",
                 f"--dockerfile={dockerfile_path}",
                 "--cache=True",
+                "--cache-copy-layers",
             ],
             volume_mounts=[
                 V1VolumeMount(name=regcred_vol_name, mount_path="/kaniko/.docker"),

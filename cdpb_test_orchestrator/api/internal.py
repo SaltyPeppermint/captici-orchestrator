@@ -4,6 +4,7 @@
 import logging
 
 from cdpb_test_orchestrator import cdpb_testing, storage
+from cdpb_test_orchestrator.data_objects import Test
 from cdpb_test_orchestrator.storage.sql.database import get_db
 from fastapi import APIRouter, BackgroundTasks, status
 from fastapi.params import Body, Depends, Query
@@ -38,8 +39,19 @@ def add_result(
     logger.info("Received result:" + result)
     storage.cdpb_tests.add_result(db, test_id, result)
     if storage.cdpb_test_groups.id2whole_project_test(db, test_group_id):
+        config_id = storage.cdpb_tests.id2config_id(db, test_id)
+        test = Test(
+            id=test_id,
+            result=result,
+            commit_hash=storage.cdpb_tests.id2commit_hash(db, test_id),
+            config_id=config_id,
+            config_content=storage.configs.id2content(db, config_id),
+            project=storage.projects.id2project(
+                db, storage.cdpb_tests.id2project_id(db, test_id)
+            ),
+        )
         background_tasks.add_task(
-            cdpb_testing.cdpb_test.report_action, db, test_group_id, test_id, result
+            cdpb_testing.cdpb_test.report_action, db, test_group_id, test
         )
     return
 

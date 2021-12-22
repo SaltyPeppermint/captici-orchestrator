@@ -1,12 +1,11 @@
 import logging
-from typing import Tuple
 
 from cdpb_test_orchestrator import k8s, storage
 from cdpb_test_orchestrator.cdpb_testing import evaluate
 from cdpb_test_orchestrator.data_objects import (
     CommitTestRequest,
-    Project,
     ProjectTestRequest,
+    Test,
 )
 from sqlalchemy.orm import Session
 
@@ -112,114 +111,152 @@ def test_whole_project(
     return
 
 
-def report_action(db: Session, test_group_id: int, test_id: int, result: str) -> None:
-    logger.info(f"Received report for test {test_id} in test_group {test_group_id}")
-    logger.info(f"Deleteing now unused config map for test {test_id}")
-    k8s.delete_config_map(test_id)
+def test_preceding_bug(
+    db: Session,
+    old_test: Test,
+    preceding_id: int,
+    preceding_commit_hash: str,
+    test_group_id: int,
+):
+    logger.info(
+        f"Bug between the preceding commit {preceding_commit_hash} "
+        f"and this one {old_test.commit_hash} "
+        "and no parent relationship. Spawning test in between."
+    )
+    commit_hash = commits.middle_select(
+        old_test.project, preceding_commit_hash, old_test.commit_hash
+    )
+    new_test_id = storage.cdpb_tests.add_empty(
+        db,
+        old_test.project.id,
+        old_test.config_id,
+        commit_hash,
+        preceding_id,
+        old_test.id,
+    )
+    storage.cdpb_test_in_group.add_test_to_group(db, new_test_id, test_group_id)
+    # double linked list, redirect pointers
+    storage.cdpb_tests.update_preceding(db, old_test.id, new_test_id)
+    storage.cdpb_tests.update_following(db, preceding_id, new_test_id)
 
-    project_id = storage.cdpb_tests.id2project_id(db, test_id)
-    project = storage.projects.id2project(db, project_id)
-    config_id = storage.cdpb_tests.id2config_id(db, test_id)
-    commit_hash = storage.cdpb_tests.id2commit_hash(db, test_id)
+    tar_path = storage.tars.tar_into(old_test.project, commit_hash)
+    app_image_name = k8s.build_commit(tar_path, old_test.project, commit_hash)
+    k8s.run_test(
+        old_test.project,
+        old_test.config_content,
+        new_test_id,
+        test_group_id,
+        app_image_name,
+    )
+
+
+def check_for_preceding_bug(
+    db: Session, test_group_id: int, test: Test, threshold: float
+) -> None:
+    preceding_id = storage.cdpb_tests.id2preceding_id(db, test.project.id)
+    if preceding_id is None:
+        return
+
+    preceding_result = storage.cdpb_tests.id2result(db, preceding_id)
+    if preceding_result is None:
+        return
+
+    # return False if the preceding test has no result (yet)
+    # This may happen because tests are run out of order
+    # Since always preceding and following tests are considered in every test,
+    # this isn't a problem
+    if not evaluate.is_bug_between(
+        test.project.parser, threshold, preceding_result, test.result
+    ):
+        return
+
+    preceding_commit_hash = storage.cdpb_tests.id2commit_hash(db, preceding_id)
+    if storage.repos.is_parent_commit(
+        test.project, preceding_commit_hash, test.commit_hash
+    ):
+        return
+
+    test_preceding_bug(db, test, preceding_id, preceding_commit_hash, test_group_id)
+    return
+
+
+def test_following_bug(
+    db: Session,
+    old_test: Test,
+    following_id: int,
+    following_commit_hash: str,
+    test_group_id: int,
+):
+    logger.info(
+        f"Bug between this commit {old_test.commit_hash} "
+        f"and and the following commit {following_commit_hash} "
+        "and no parent relationship. Spawning test in between."
+    )
+    commit_hash = commits.middle_select(
+        old_test.project, old_test.commit_hash, following_commit_hash
+    )
+    new_test_id = storage.cdpb_tests.add_empty(
+        db,
+        old_test.project.id,
+        old_test.config_id,
+        commit_hash,
+        old_test.id,
+        following_id,
+    )
+    storage.cdpb_test_in_group.add_test_to_group(db, new_test_id, test_group_id)
+    # double linked list, redirect pointers
+    storage.cdpb_tests.update_preceding(db, following_id, new_test_id)
+    storage.cdpb_tests.update_following(db, old_test.id, new_test_id)
+
+    tar_path = storage.tars.tar_into(old_test.project, commit_hash)
+    app_image_name = k8s.build_commit(tar_path, old_test.project, commit_hash)
+    k8s.run_test(
+        old_test.project,
+        old_test.config_content,
+        new_test_id,
+        test_group_id,
+        app_image_name,
+    )
+
+
+def check_for_following_bug(
+    db: Session, test_group_id: int, test: Test, threshold: float
+) -> None:
+    following_id = storage.cdpb_tests.id2following_id(db, test.id)
+    if following_id is None:
+        return
+
+    following_result = storage.cdpb_tests.id2result(db, following_id)
+    if following_result is None:
+        # return False if the following has no result (yet)
+        # This may happen because tests are run out of order
+        # Since always preceding and following tests are considered in every test,
+        # this isn't a problem
+        return
+
+    if not evaluate.is_bug_between(
+        test.project.parser, threshold, test.result, following_result
+    ):
+        return
+
+    following_commit_hash = storage.cdpb_tests.id2commit_hash(db, following_id)
+    if storage.repos.is_parent_commit(
+        test.project, test.commit_hash, following_commit_hash
+    ):
+        return
+
+    test_following_bug(db, test, following_id, following_commit_hash, test_group_id)
+    return
+
+
+def report_action(db: Session, test_group_id: int, test: Test) -> None:
+    logger.info(f"Received report for test {test.id} in test_group {test_group_id}")
+    logger.info(f"Deleteing now unused config map for test {test.id}")
+    k8s.delete_config_map(test.id)
 
     threshold = storage.cdpb_test_groups.id2threshold(db, test_group_id)
     logger.info(f"Evaluating with threshhold {threshold}.")
 
-    preceding_id = storage.cdpb_tests.id2preceding_id(db, test_id)
-    if preceding_id:
-        preceding_commit_hash = storage.cdpb_tests.id2commit_hash(db, preceding_id)
-        preceding_result = storage.cdpb_tests.id2result(db, preceding_id)
-        if evaluate.bug_in_interval(
-            project,
-            preceding_commit_hash,
-            preceding_result,
-            commit_hash,
-            result,
-            threshold,
-        ):
-            logger.info(
-                f"Bug before between the preceding commit {preceding_commit_hash} "
-                f"and this one {commit_hash} and no parent relationship. "
-                "Spawning test in between."
-            )
-            spawn_test_between(
-                db,
-                project,
-                test_group_id,
-                config_id,
-                preceding_id,
-                preceding_commit_hash,
-                test_id,
-                commit_hash,
-            )
-
-    following_id = storage.cdpb_tests.id2following_id(db, test_id)
-    if following_id:
-        following_commit_hash = storage.cdpb_tests.id2commit_hash(db, following_id)
-        following_result = storage.cdpb_tests.id2result(db, following_id)
-        if evaluate.bug_in_interval(
-            project,
-            commit_hash,
-            result,
-            following_commit_hash,
-            following_result,
-            threshold,
-        ):
-            logger.info(
-                f"Bug before between the following commit {following_commit_hash} "
-                f"and this one {commit_hash} and no parent relationship. "
-                "Spawning test in between."
-            )
-            spawn_test_between(
-                db,
-                project,
-                test_group_id,
-                config_id,
-                test_id,
-                commit_hash,
-                following_id,
-                following_commit_hash,
-            )
-    return
-
-
-def get_test_meta(db: Session, test_id: int) -> Tuple[Project, int, str, str]:
-    project_id = storage.cdpb_tests.id2project_id(db, test_id)
-    project = storage.projects.id2project(db, project_id)
-
-    config_id = storage.cdpb_tests.id2config_id(db, test_id)
-    commit_hash = storage.cdpb_tests.id2commit_hash(db, test_id)
-    result = storage.cdpb_tests.id2result(db, test_id)
-    return project, config_id, commit_hash, result
-
-
-def spawn_test_between(
-    db: Session,
-    project: Project,
-    test_group_id: int,
-    config_id: int,
-    preceding_id: int,
-    preceding_commit_hash: str,
-    following_id: int,
-    following_commit_hash: str,
-) -> None:
-    # irrelevant if preceding or following, both have same id
-    commit_hash = commits.middle_select(
-        project, preceding_commit_hash, following_commit_hash
-    )
-    test_id = storage.cdpb_tests.add_empty(
-        db, project.id, config_id, commit_hash, preceding_id, following_id
-    )
-    storage.cdpb_test_in_group.add_test_to_group(db, test_id, test_group_id)
-    # double linked list, redirect pointers
-    storage.cdpb_tests.update_preceding(db, following_id, test_id)
-    storage.cdpb_tests.update_following(db, preceding_id, test_id)
-
-    project = storage.projects.id2project(db, project.id)
-
-    tar_path = storage.tars.tar_into(project, commit_hash)
-    app_image_name = k8s.build_commit(tar_path, project, commit_hash)
-    config_content = storage.configs.id2content(db, config_id)
-    k8s.run_test(project, config_content, test_id, test_group_id, app_image_name)
-
+    check_for_preceding_bug(db, test_group_id, test, threshold)
+    check_for_following_bug(db, test_group_id, test, threshold)
     return

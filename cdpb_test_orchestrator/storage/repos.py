@@ -64,12 +64,11 @@ def get_filepaths(project_name: str, project_id: int, commit_hash: str) -> List[
 
 
 def is_parent_commit(
-    project_name: str,
-    project_id: int,
+    project: Project,
     preceding_commit_hash: str,
     following_commit_hash: str,
 ) -> bool:
-    repo = git.Repo(get_repo_path(project_name, project_id))
+    repo = git.Repo(get_repo_path(project.name, project.id))
     right_commit = repo.commit(following_commit_hash)
     parent_hashes = [parent.hexsha for parent in right_commit.parents]
     return preceding_commit_hash in parent_hashes

@@ -47,5 +47,6 @@ def middle_select(
 def initial_sample_select(project: Project, n_commits: int) -> List[str]:
 
     all_commit_hashs = repos.get_all_commits(project)
-
-    return uniform_choice(all_commit_hashs, n_commits)
+    selected_commits = uniform_choice(all_commit_hashs, n_commits)
+    deduplicate = list(set(selected_commits))
+    return deduplicate
