@@ -62,5 +62,5 @@ def delete_project(
         return
     except NoResultFound as no_result:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Project not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Config not found"
         ) from no_result

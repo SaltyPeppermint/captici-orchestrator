@@ -20,17 +20,13 @@ def add(db: Session, project_id: int, content: str) -> int:
 
 def deleteById(db: Session, config_id: int) -> bool:
     selstmt = select(models.Config).where(models.Config.id == config_id)
-    existing_project = db.execute(selstmt).scalars().one_or_none()
-    if existing_project:
-        selstmt = select(models.Config).where(models.Config.id == config_id)
-        db.execute(selstmt)
+    existing_config = db.execute(selstmt).scalars().one_or_none()
+    if existing_config:
+        delstmt = delete(models.Config).where(models.Config.id == config_id)
+        db.execute(delstmt)
         db.commit()
     else:
         raise NoResultFound
-
-    delstmt = delete(models.Project).where(models.Project.id == config_id)
-    db.execute(delstmt)
-    db.commit()
     return True
 
 

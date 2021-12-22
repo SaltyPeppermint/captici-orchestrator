@@ -24,15 +24,11 @@ def deleteById(db: Session, project_id: int) -> bool:
     selstmt = select(models.Project).where(models.Project.id == project_id)
     existing_project = db.execute(selstmt).scalars().one_or_none()
     if existing_project:
-        selstmt = select(models.Project).where(models.Project.id == project_id)
-        db.execute(selstmt)
+        delstmt = delete(models.Project).where(models.Project.id == project_id)
+        db.execute(delstmt)
         db.commit()
     else:
         raise sqlalchemy.exc.NoResultFound
-
-    delstmt = delete(models.Project).where(models.Project.id == project_id)
-    db.execute(delstmt)
-    db.commit()
     return True
 
 
