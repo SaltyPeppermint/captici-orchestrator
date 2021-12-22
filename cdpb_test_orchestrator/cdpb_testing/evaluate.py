@@ -20,14 +20,16 @@ def bugs_in_project(db, project_id, threshold) -> List[int]:
         preceding_id = storage.cdpb_tests.id2preceding_id(db, test_id)
         if preceding_id:
             preceding_result = storage.cdpb_tests.id2result(db, preceding_id)
-            if is_bug_between(parser, threshold, preceding_result, result):
-                tests_with_bugs.append(test_id)
+            if preceding_result:
+                if is_bug_between(parser, threshold, preceding_result, result):
+                    tests_with_bugs.append(test_id)
 
         following_id = storage.cdpb_tests.id2following_id(db, test_id)
         if following_id:
             following_result = storage.cdpb_tests.id2result(db, following_id)
-            if is_bug_between(parser, threshold, result, following_result):
-                tests_with_bugs.append(following_id)
+            if following_result:
+                if is_bug_between(parser, threshold, result, following_result):
+                    tests_with_bugs.append(following_id)
     # deduplicate
     return list(set(tests_with_bugs))
 

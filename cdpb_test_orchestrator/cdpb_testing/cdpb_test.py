@@ -189,7 +189,7 @@ def test_following_bug(
 ):
     logger.info(
         f"Bug between this commit {old_test.commit_hash} "
-        f"and and the following commit {following_commit_hash} "
+        f"and the following commit {following_commit_hash} "
         "and no parent relationship. Spawning test in between."
     )
     commit_hash = commits.middle_select(
