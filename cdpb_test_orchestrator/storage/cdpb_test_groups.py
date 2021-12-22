@@ -52,9 +52,9 @@ def id2finished(db: Session, test_group_id: int) -> bool:
         models.TestInTestGroup.test_id == models.CDPBTest.id,
     )
     stmt = (
-        select(models.CDPBTest.finished)
+        select(models.CDPBTest.result)
         .select_from(j)
         .where(models.TestInTestGroup.test_group_id == test_group_id)
     )
-    tests_finished = db.execute(stmt).scalars().all()
-    return all(tests_finished)
+    test_results = db.execute(stmt).scalars().all()
+    return all(test_results)

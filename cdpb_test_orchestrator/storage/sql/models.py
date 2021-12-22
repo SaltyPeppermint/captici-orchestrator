@@ -92,7 +92,6 @@ class CDPBTest(Base):
     preceding_test_id = Column(Integer)
     following_test_id = Column(Integer)
     result = Column(String(65536))
-    finished = Column(Boolean(False), nullable=False)
 
     def __init__(
         self,
@@ -106,7 +105,6 @@ class CDPBTest(Base):
         self.config_id = config_id
         self.commit_hash = commit_hash
         self.result = None
-        self.finished = False
         self.preceding_test_id = preceding_test_id
         self.following_test_id = following_test_id
 
@@ -114,7 +112,6 @@ class CDPBTest(Base):
         return (
             f"<CDPB Test(id='{self.id}', config_id='{self.config_id}',"
             f" commit_hash='{self.commit_hash}', content='{self.result}',"
-            f" finished='{self.finished}'',"
             f" preceding_test_id='{self.preceding_test_id}'',"
             f" following_test_id='{self.following_test_id}')>"
         )

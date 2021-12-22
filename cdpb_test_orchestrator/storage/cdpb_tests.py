@@ -50,7 +50,7 @@ def update_preceding(db: Session, test_id: int, preceding_test_id: int) -> None:
     stmt = (
         update(models.CDPBTest)
         .where(models.CDPBTest.id == test_id)
-        .values(preceding_test_id=preceding_test_id, finished=True)
+        .values(preceding_test_id=preceding_test_id)
     )
     db.execute(stmt)
     db.commit()
@@ -61,18 +61,7 @@ def update_following(db: Session, test_id: int, following_test_id: int) -> None:
     stmt = (
         update(models.CDPBTest)
         .where(models.CDPBTest.id == test_id)
-        .values(following_test_id=following_test_id, finished=True)
-    )
-    db.execute(stmt)
-    db.commit()
-    return
-
-
-def mark_as_degradation(db: Session, test_id: int) -> None:
-    stmt = (
-        update(models.CDPBTest)
-        .where(models.CDPBTest.id == test_id)
-        .values(revealed_bug=True, finished=True)
+        .values(following_test_id=following_test_id)
     )
     db.execute(stmt)
     db.commit()
