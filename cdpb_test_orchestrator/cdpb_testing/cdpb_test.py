@@ -20,7 +20,10 @@ def test_commit(db: Session, test_group_id: int, req: CommitTestRequest) -> None
         f"under the test group {test_group_id}"
     )
     project = storage.projects.id2project(db, req.project_id)
-    tests_with_bugs = evaluate.bugs_in_project(db, req.project_id, req.threshold)
+    previous_test_ids = storage.cdpb_tests.project_id2ids(db, req.project_id)
+    tests_with_bugs = evaluate.bugs_in_interval(
+        db, req.project_id, req.threshold, previous_test_ids
+    )
     logger.info(f"Previous bugs found in the test {tests_with_bugs}.")
 
     tar_path = storage.tars.tar_into(project, req.commit_hash)

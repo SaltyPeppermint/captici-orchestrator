@@ -12,6 +12,10 @@ def rel_diff(x: float, y: float) -> float:
 
 def bugs_in_project(db, project_id, threshold) -> List[int]:
     test_ids = storage.cdpb_tests.project_id2ids(db, project_id)
+    return bugs_in_interval(db, project_id, threshold, test_ids)
+
+
+def bugs_in_interval(db, project_id, threshold, test_ids):
     parser = storage.projects.id2parser(db, project_id)
     tests_with_bugs = []
     for test_id in test_ids:
@@ -68,9 +72,7 @@ def testing_report(db, test_group_id) -> TestResponse:
     )
     project_id = storage.cdpb_test_groups.id2project_id(db, test_group_id)
     threshold = storage.cdpb_test_groups.id2threshold(db, test_group_id)
-    bugs_in_group = [
-        t for t in test_ids_in_group if t in bugs_in_project(db, project_id, threshold)
-    ]
+    bugs_in_group = bugs_in_interval(db, project_id, threshold, test_ids_in_group)
 
     if bugs_in_group is []:
         return TestResponse(
