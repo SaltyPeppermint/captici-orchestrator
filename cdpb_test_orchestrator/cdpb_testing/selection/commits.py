@@ -15,10 +15,8 @@ def choose_middle(left_bounding_item, right_bounding_item, items):
             break
 
     items_in_window = items[ix:iy]
-    middle_item = items_in_window[len(items_in_window) // 2]
     # // is division without remainder, perfect here
-
-    return middle_item
+    return items_in_window[len(items_in_window) // 2]
 
 
 def uniform_choice(commit_hashs: List[str], n_commits: int) -> List[str]:

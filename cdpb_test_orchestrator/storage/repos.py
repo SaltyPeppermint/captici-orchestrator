@@ -1,7 +1,5 @@
 import os
 import re
-
-# from pathlib import Path
 from typing import List
 
 import git
@@ -19,7 +17,6 @@ def auth_info2clone_url(repo_url: str, git_user: str, auth_token: str) -> str:
 
 
 def clone_repo(clone_url: str, repo_path: str) -> git.Repo:
-    # Path(repo_path).mkdir(parents=True, exist_ok=True)
     repo = git.Repo.clone_from(clone_url, repo_path)
     return repo
 
@@ -59,7 +56,7 @@ def get_all_commits(project: Project) -> List[str]:
 def get_filepaths(project_name: str, project_id: int, commit_hash: str) -> List[str]:
     repo = git.Repo(get_repo_path(project_name, project_id))
     changed_files = repo.git.show(commit_hash, pretty="", name_only=True)
-    # im essentially coding against the cli but it works
+    # Essentially executing the git command in the shell but it works
     return changed_files.split("\n")
 
 

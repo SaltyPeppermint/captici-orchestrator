@@ -1,7 +1,7 @@
 # type: ignore
 # temporarily disabling pydantic mypy checking due to bug
 # https://github.com/samuelcolvin/pydantic/pull/3175#issuecomment-914897604
-# APIRouter creates path operations for item module
+
 from cdpb_test_orchestrator import cdpb_testing, storage
 from cdpb_test_orchestrator.data_objects import (
     CommitTestRequest,

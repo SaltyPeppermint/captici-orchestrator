@@ -17,11 +17,7 @@ def result2value(report: str) -> float:
     junit = JUnitXml.fromstring(report)
     total_time = 0.0
     for suite in junit:
-        # print(suite)
         for case in suite:
-            # print(type(case))
-            # print(case.name)
-            # print(case.time)
             if case.result:
                 parse_case(case)
             else:

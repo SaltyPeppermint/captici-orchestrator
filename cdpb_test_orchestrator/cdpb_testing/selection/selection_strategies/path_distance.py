@@ -34,7 +34,7 @@ def select(
     project: Project, n_configs: int, bug_dict: Dict[int, str]
 ) -> List[Tuple[float, int]]:
 
-    # Need to specify that this only always works against the current HEAD
+    # This only always works against the current HEAD. TODO: Document this behavior!
     head_filepaths = storage.repos.get_filepaths(project.name, project.id, "HEAD")
 
     by_distance = {}

@@ -35,7 +35,6 @@ class ProjectTestRequest(BaseModel):
     threshold: float = Field(
         0.25, description="Threshold for regression detection per test_group."
     )
-    # n_configs: int = Field(..., description="n configs to test", gt=0),
 
 
 class Project(BaseModel):
@@ -119,11 +118,14 @@ class RegressionResponse(BaseModel):
 
 
 class TestResponse(BaseModel):
+    """
+    Dict of Regressing commits and corresponding config ids
+    """
+
     project_id: int
     bug_found: bool
     individual_results: Dict[int, Optional[float]]
     regressions: Optional[List[RegressionResponse]] = None
-    # Dict of Regressing commits and corresponding config ids
 
 
 class Test(BaseModel):

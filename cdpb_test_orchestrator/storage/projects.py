@@ -1,5 +1,3 @@
-from typing import Tuple
-
 import sqlalchemy
 from cdpb_test_orchestrator.data_objects import Project, ResultParser
 from sqlalchemy.exc import SQLAlchemyError
@@ -36,45 +34,6 @@ def id2project(db: Session, project_id: int) -> Project:
     stmt = select(models.Project).where(models.Project.id == project_id)
     result = db.execute(stmt).scalars().one()
     return Project.from_orm(result)
-
-
-def id2name(db: Session, project_id: int) -> str:
-    stmt = select(models.Project.name).where(models.Project.id == project_id)
-    return db.execute(stmt).scalars().one()
-
-
-def id2result_path(db: Session, project_id: int) -> str:
-    stmt = select(models.Project.result_path).where(models.Project.id == project_id)
-    return db.execute(stmt).scalars().one()
-
-
-def id2tester_image(db: Session, project_id: int) -> str:
-    stmt = select(models.Project.tester_image).where(models.Project.id == project_id)
-    return db.execute(stmt).scalars().one()
-
-
-def id2is_two_container(db: Session, project_id: int) -> str:
-    stmt = select(models.Project.two_container).where(models.Project.id == project_id)
-    return db.execute(stmt).scalars().one()
-
-
-def id2config_path(db: Session, project_id: int) -> str:
-    stmt = select(models.Project.config_path).where(models.Project.id == project_id)
-    return db.execute(stmt).scalars().one()
-
-
-def id2tester_command(db: Session, project_id: int) -> str:
-    stmt = select(models.Project.tester_command).where(models.Project.id == project_id)
-    return db.execute(stmt).scalars().one()
-    # return "cd /app && python3 -m pytest --junitxml=/tmp/report"
-
-
-def id2git_info(db: Session, project_id: int) -> Tuple[str, str, str]:
-    stmt = select(
-        models.Project.repo_url, models.Project.git_user, models.Project.auth_token
-    ).where(models.Project.id == project_id)
-    return db.execute(stmt).scalars().one()
-    # return ("github.com/BurntSushi/ripgrep.git", "git", "")
 
 
 def id2parser(db: Session, project_id: int) -> ResultParser:

@@ -38,6 +38,7 @@ spec:
             - name: htpasswd
               mountPath: /auth
               readOnly: true
+            # TODO: Give the registry actual usable persistent storage
             # - name: storage
             #   mountPath: /var/lib/registry
       volumes:

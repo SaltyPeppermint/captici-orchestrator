@@ -32,7 +32,7 @@ def rel_diff_of_test_ids(db, project_id, test_ids):
                 diff = diff_between_results(parser, result, preceding_result)
                 tests_with_bugs[test_id] = diff
         # Following not needed since a detectable bug always needs a preceding
-        # result to compare to
+        # result to compare to. Still kept to explain it.
         #
         # following_id = storage.cdpb_tests.id2following_id(db, test_id)
         # if following_id:
@@ -40,7 +40,7 @@ def rel_diff_of_test_ids(db, project_id, test_ids):
         #     if following_result:
         #         if is_bug_between(parser, threshold, result, following_result):
         #             tests_with_bugs.append(following_id)
-    # deduplicate
+    # deduplicate was only needed when the previous block was there
     return tests_with_bugs
 
 
@@ -64,9 +64,8 @@ def bug_ids_in_project(db: Session, project_id: int, threshold: float) -> List[i
     test_ids = storage.cdpb_tests.project_id2ids(db, project_id)
     logger.info(f"Found the following tests in the project {test_ids}")
     filtered_test_ids = filter_identical_tests(db, test_ids)
-    logger.info(f"Removed redundend test. Remaining tests: {filtered_test_ids}")
+    logger.info(f"Removed redundant test. Remaining tests: {filtered_test_ids}")
     test_ids_with_rel_diff = rel_diff_of_test_ids(db, project_id, filtered_test_ids)
-    print(test_ids_with_rel_diff)
     return bugs_in_rel_diffs(test_ids_with_rel_diff, threshold)
 
 
@@ -82,26 +81,6 @@ def is_bug_between_results(
     value_a = parsing.result2value(result_a, parser)
     value_b = parsing.result2value(result_b, parser)
     return rel_diff(value_a, value_b) > threshold
-
-
-# def get_diffs(db, test_ids: List[int]) -> Dict[int, float]:
-#     return_dict = {}
-#     for test_id in test_ids:
-#         project_id = storage.cdpb_tests.id2project_id(db, test_id)
-#         parser = storage.projects.id2parser(db, project_id)
-#         preceding_id = storage.cdpb_tests.id2preceding_id(db, test_id)
-#         if preceding_id:
-#             test_result = storage.cdpb_tests.id2result(db, test_id)
-#             test_perf = parsing.result2value(test_result, parser)
-
-#             preceding_result = storage.cdpb_tests.id2result(db, preceding_id)
-#             preceding_perf = parsing.result2value(preceding_result, parser)
-
-#             return_dict[test_id] = rel_diff(preceding_perf, test_perf)
-#         else:
-#             return_dict[test_id] = 0
-
-#     return return_dict
 
 
 def testing_report(db, test_group_id) -> TestResponse:

@@ -95,11 +95,13 @@ def build_commits(
         )
         api.create_namespaced_job(body=manifest, namespace=namespace)
         logger.info(
-            "Have to wait a second since rate limiting is commonly around 1 second. "
+            "Have to wait 1.5 seconds since rate limiting is commonly around 1 second. "
             "See docs.aws.amazon.com/AmazonECR/latest/public/public-service-quotas.html"
         )
         time.sleep(1.5)
-        # yes this is ugly see logging info above.
+        # Yes this is ugly see logging info above.
+        # Have to wait a 1.5 seconds since rate limiting is commonly around 1 second.
+        # See docs.aws.amazon.com/AmazonECR/latest/public/public-service-quotas.html
         # Could be solved with a generic pull through cache in the future.
         manifests.append(manifest)
         app_image_names[commit_hash] = image_name
