@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, List
 
 from cdpb_test_orchestrator import storage
@@ -6,8 +7,11 @@ from cdpb_test_orchestrator.data_objects import (
     ResultParser,
     TestResponse,
 )
+from sqlalchemy.orm import Session
 
 from . import parsing
+
+logger = logging.getLogger("uvicorn")
 
 
 def rel_diff(x: float, y: float) -> float:
@@ -19,7 +23,8 @@ def rel_diff_of_test_ids(db, project_id, test_ids):
     tests_with_bugs = {}
     for test_id in test_ids:
         result = storage.cdpb_tests.id2result(db, test_id)
-
+        if result is None:
+            continue
         preceding_id = storage.cdpb_tests.id2preceding_id(db, test_id)
         if preceding_id:
             preceding_result = storage.cdpb_tests.id2result(db, preceding_id)
@@ -43,9 +48,25 @@ def bugs_in_rel_diffs(ids_with_diffs: Dict[int, float], threshold: float) -> Lis
     return [k for k, v in ids_with_diffs.items() if v > threshold]
 
 
-def bug_ids_in_project(db, project_id, threshold) -> List[int]:
+def filter_identical_tests(db: Session, test_ids: List[int]) -> List[int]:
+    already_tested = []
+    filtered_ids = []
+    for test_id in test_ids:
+        commit_hash = storage.cdpb_tests.id2commit_hash(db, test_id)
+        config_id = storage.cdpb_tests.id2config_id(db, test_id)
+        if (commit_hash, config_id) not in already_tested:
+            already_tested.append((commit_hash, config_id))
+            filtered_ids.append(test_id)
+    return filtered_ids
+
+
+def bug_ids_in_project(db: Session, project_id: int, threshold: float) -> List[int]:
     test_ids = storage.cdpb_tests.project_id2ids(db, project_id)
-    test_ids_with_rel_diff = rel_diff_of_test_ids(db, project_id, test_ids)
+    logger.info(f"Found the following tests in the project {test_ids}")
+    filtered_test_ids = filter_identical_tests(db, test_ids)
+    logger.info(f"Removed redundend test. Remaining tests: {filtered_test_ids}")
+    test_ids_with_rel_diff = rel_diff_of_test_ids(db, project_id, filtered_test_ids)
+    print(test_ids_with_rel_diff)
     return bugs_in_rel_diffs(test_ids_with_rel_diff, threshold)
 
 
@@ -63,24 +84,24 @@ def is_bug_between_results(
     return rel_diff(value_a, value_b) > threshold
 
 
-def get_diffs(db, test_ids_in_group: List[int]) -> Dict[int, float]:
-    return_dict = {}
-    for test_id in test_ids_in_group:
-        project_id = storage.cdpb_tests.id2project_id(db, test_id)
-        parser = storage.projects.id2parser(db, project_id)
-        preceding_id = storage.cdpb_tests.id2preceding_id(db, test_id)
-        if preceding_id:
-            test_result = storage.cdpb_tests.id2result(db, test_id)
-            test_perf = parsing.result2value(test_result, parser)
+# def get_diffs(db, test_ids: List[int]) -> Dict[int, float]:
+#     return_dict = {}
+#     for test_id in test_ids:
+#         project_id = storage.cdpb_tests.id2project_id(db, test_id)
+#         parser = storage.projects.id2parser(db, project_id)
+#         preceding_id = storage.cdpb_tests.id2preceding_id(db, test_id)
+#         if preceding_id:
+#             test_result = storage.cdpb_tests.id2result(db, test_id)
+#             test_perf = parsing.result2value(test_result, parser)
 
-            preceding_result = storage.cdpb_tests.id2result(db, preceding_id)
-            preceding_perf = parsing.result2value(preceding_result, parser)
+#             preceding_result = storage.cdpb_tests.id2result(db, preceding_id)
+#             preceding_perf = parsing.result2value(preceding_result, parser)
 
-            return_dict[test_id] = rel_diff(preceding_perf, test_perf)
-        else:
-            return_dict[test_id] = 0
+#             return_dict[test_id] = rel_diff(preceding_perf, test_perf)
+#         else:
+#             return_dict[test_id] = 0
 
-    return return_dict
+#     return return_dict
 
 
 def testing_report(db, test_group_id) -> TestResponse:

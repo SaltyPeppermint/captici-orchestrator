@@ -69,7 +69,7 @@ def test_whole_project(
     commit_hashs = commits.initial_sample_select(project, req.n_commits)
     logger.info(f"Selected commits {commit_hashs} for initial test.")
 
-    config_ids = storage.cdpb_tests.project_id2ids(db, req.project_id)
+    config_ids = storage.configs.project_id2ids(db, req.project_id)
     logger.info(
         f"Testing all configs {config_ids} for initial test of {req.project_id}."
     )

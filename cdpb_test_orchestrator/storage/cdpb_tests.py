@@ -17,9 +17,9 @@ def id2config_id(db: Session, test_id: int) -> int:
     return db.execute(stmt).scalars().one()
 
 
-def id2result(db: Session, test_id: int) -> str:
+def id2result(db: Session, test_id: int) -> str | None:
     stmt = select(models.CDPBTest.result).where(models.CDPBTest.id == test_id)
-    return db.execute(stmt).scalars().one()
+    return db.execute(stmt).scalars().one_or_none()
 
 
 def id2preceding_id(db: Session, test_id: int) -> int | None:
@@ -42,7 +42,7 @@ def id2project_id(db: Session, test_id: int) -> int:
 
 
 def project_id2ids(db: Session, project_id: int) -> List[int]:
-    stmt = select(models.Config.id).where(models.Config.project_id == project_id)
+    stmt = select(models.CDPBTest.id).where(models.CDPBTest.project_id == project_id)
     return db.execute(stmt).scalars().all()
 
 
